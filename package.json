@@ -1,0 +1,16 @@
+{
+  "name": "playverse",
+  "version": "0.4.0",
+  "description": "PLAYVERSE: plataforma de entretenimiento familiar (Node.js + Express + Socket.IO + PostgreSQL)",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch --env-file=.env server/index.js"
+  },
+  "engines": { "node": ">=20.6" },
+  "dependencies": {
+    "express": "^4.21.0",
+    "pg": "^8.13.0",
+    "socket.io": "^4.8.0"
+  }
+}

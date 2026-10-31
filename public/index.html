@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PLAYVERSE</title>
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff3d6;--card:#fff;--tx:#25164f;--mu:#6b5c94;--pk:#e8236b;--ln:#25164f26;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17103a;--card:#271b63;--tx:#fff4dd;--mu:#b9acf0;--pk:#ff4d8d;--ln:#ffffff26}}
+:root[data-theme="dark"]{--bg:#17103a;--card:#271b63;--tx:#fff4dd;--mu:#b9acf0;--pk:#ff4d8d;--ln:#ffffff26}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:700 16px/1.45 Nunito,system-ui,sans-serif}
+h1,h2,h3,.btn,.logo{font-family:'Lilita One',Impact,sans-serif;font-weight:400;margin:0}
+header{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 16px;border-bottom:2px solid var(--ln)}
+.logo{font-size:1.7rem;color:var(--pk);margin-right:auto;cursor:pointer;background:none;border:0}
+nav{display:flex;flex-wrap:wrap;gap:6px}
+nav button,.tg{background:var(--card);color:var(--tx);border:2px solid var(--ln);border-radius:12px;padding:6px 12px;font:inherit;cursor:pointer}
+nav button.on{background:var(--tx);color:var(--bg)}
+main{max-width:1000px;margin:0 auto;padding:18px 16px 60px}
+.hero{display:grid;gap:18px;grid-template-columns:1.5fr 1fr;align-items:center;margin-bottom:22px}
+@media(max-width:760px){.hero{grid-template-columns:1fr}}
+.hero h1{font-size:clamp(2.3rem,7vw,4.6rem);line-height:1;text-shadow:4px 4px 0 var(--pk)}
+.hero p{max-width:46ch;color:var(--mu)}
+.btn{background:var(--pk);color:#fff;border:0;border-radius:14px;padding:10px 20px;font-size:1.05rem;cursor:pointer;box-shadow:0 4px 0 #0004}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #0004}
+.btn.alt{background:#ffd23f;color:#1b1140}.btn.big{font-size:1.4rem;padding:14px 28px;margin-top:6px}
+.card{background:var(--card);border:2px solid var(--ln);border-radius:20px;padding:16px;margin-bottom:14px}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-bottom:22px}
+.cat{background:var(--c);color:#1b1140;border:0;border-radius:20px;padding:16px;text-align:left;cursor:pointer;font:inherit;box-shadow:0 5px 0 #0003}
+.cat:hover{transform:translateY(-3px)}.cat b{display:block;font:1.35rem 'Lilita One'}.cat span.e{font-size:2.6rem;display:block}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.chip{background:var(--card);border:2px solid var(--ln);border-radius:99px;padding:3px 12px}.chip.on{background:#ffd23f;color:#1b1140;border-color:#ffd23f}
+.xp{height:10px;background:var(--ln);border-radius:9px;overflow:hidden}.xp i{display:block;height:100%;background:#3fe0d0}
+.av{font-size:3rem}
+.row,.row2{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start}.row2{align-items:end;margin:8px 0}
+input,select,textarea{font:inherit;background:var(--bg);color:var(--tx);border:2px solid var(--ln);border-radius:10px;padding:8px}
+textarea{min-width:200px}
+.opts{display:grid;gap:8px;grid-template-columns:1fr 1fr}@media(max-width:560px){.opts{grid-template-columns:1fr}}
+.opt{background:var(--bg);color:var(--tx);border:2px solid var(--ln);border-radius:14px;padding:12px;font:inherit;cursor:pointer}
+.opt.good{background:#2fcf7f;color:#08301c}.opt.bad{background:#ff6b6b;color:#3a0808}
+.tb{height:8px;background:var(--ln);border-radius:9px;overflow:hidden}.tb i{display:block;height:100%;width:100%;background:#ff9a55;transition:width 1s linear}
+.big{font:1.5rem 'Lilita One'}small,.mu{color:var(--mu)}
+.res{font:1.6rem 'Lilita One';min-height:2.2rem;text-align:center}
+.wheel{position:relative;width:320px;max-width:100%}.wheel:before{content:'▼';position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:1.8rem;color:var(--pk)}
+.pc{display:inline-block;width:90px;height:128px;background:#fff;color:#111;border-radius:12px;font:2.6rem 'Lilita One';text-align:center;line-height:128px;box-shadow:0 4px 0 #0004;margin:6px}
+.pc.r{color:#d11}
+.coin{font-size:4rem;display:inline-block}.coin.fl{animation:fl .7s}@keyframes fl{to{transform:rotateY(1080deg)}}
+.m{display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:center;margin:6px 0}.m button{background:var(--bg);color:var(--tx);border:2px solid var(--ln);border-radius:10px;padding:8px;font:inherit;cursor:pointer}.m button.w{background:#2fcf7f;color:#08301c}
+.teams{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+.back{background:none;border:0;color:var(--mu);font:inherit;cursor:pointer;padding:0 0 8px}
+#cf{position:fixed;inset:0;pointer-events:none;z-index:9}
+td,th{padding:4px 10px;text-align:left}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+:focus-visible{outline:3px solid #3fe0d0;outline-offset:2px}
+</style></head><body>
+<header><button class="logo" onclick="go('home')">🎮 PLAYVERSE</button><nav id="nav"></nav><button class="tg" onclick="tgS()" id="bs"></button><button class="tg" onclick="tgT()">🌓 Tema</button></header>
+<main id="app"></main><canvas id="cf"></canvas>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const D={name:'Jugador',av:'🦊',pts:0,xp:0,wins:0,played:0,hist:[],board:{},champs:[],snd:1,fichas:100,az:[],P:[]};
+let S;try{S={...D,...JSON.parse(localStorage.getItem('pv')||'{}')}}catch(e){S={...D}}
+if(!S.P.length)S.P=[S.name];
+const save=()=>{try{localStorage.setItem('pv',JSON.stringify(S))}catch(e){}};
+const $=s=>document.querySelector(s),rnd=n=>Math.floor(Math.random()*n),sh=a=>[...a].sort(()=>Math.random()-.5);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const lv=()=>1+Math.floor(S.xp/100),names=id=>$(id).value.split('\n').map(s=>s.trim()).filter(Boolean);
+let AC;function beep(f,d=.12,t='sine',at=0){if(!S.snd)return;try{AC=AC||new AudioContext();const o=AC.createOscillator(),g=AC.createGain(),T=AC.currentTime+at;o.type=t;o.frequency.value=f;g.gain.setValueAtTime(.12,T);g.gain.exponentialRampToValueAtTime(.001,T+d);o.connect(g);g.connect(AC.destination);o.start(T);o.stop(T+d)}catch(e){}}
+const snd={click:()=>beep(520,.06),ok:()=>{beep(660,.1);beep(880,.15,'sine',.1)},bad:()=>beep(160,.3,'sawtooth'),win:()=>[523,659,784,1047].forEach((f,i)=>beep(f,.18,'triangle',i*.12)),tick:()=>beep(900,.03,'square')};
+function confetti(){if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;const c=$('#cf'),x=c.getContext('2d'),cols=['#ff4d8d','#ffd23f','#3fe0d0','#ff9a55','#9d86ff'];c.width=innerWidth;c.height=innerHeight;const p=Array.from({length:150},()=>({x:innerWidth/2,y:innerHeight/3,vx:(Math.random()-.5)*16,vy:-Math.random()*14-4,s:5+Math.random()*7,c:cols[rnd(5)],r:Math.random()*6}));let f=0;(function a(){x.clearRect(0,0,c.width,c.height);p.forEach(q=>{q.x+=q.vx;q.y+=q.vy;q.vy+=.35;q.r+=.2;x.fillStyle=q.c;x.save();x.translate(q.x,q.y);x.rotate(q.r);x.fillRect(-q.s/2,-q.s/2,q.s,q.s*.6);x.restore()});if(++f<150)requestAnimationFrame(a);else x.clearRect(0,0,c.width,c.height)})()}
+function award(n,p){S.board[p]=(S.board[p]||0)+n;if(p===S.name){S.pts+=n;S.xp+=n}save()}
+function log(t){S.hist.unshift(new Date().toLocaleDateString('es-MX')+' - '+t);S.hist=S.hist.slice(0,15);save()}
+function done(w){S.played++;if(w===S.name)S.wins++;save()}
+function tgS(){S.snd=S.snd?0:1;save();$('#bs').textContent=S.snd?'🔊 Sonido':'🔇 Sin sonido';snd.click()}
+function tgT(){const d=document.documentElement,cur=d.dataset.theme||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');d.dataset.theme=cur==='dark'?'light':'dark'}
+const CATS={k:{t:'Conocimiento',e:'🧠',c:'#ffd23f',d:'Preguntas con tiempo, niveles y explicación.',g:['trivia']},a:{t:'Adivinanzas',e:'🔮',c:'#3fe0d0',d:'Pistas, intentos y puntos por precisión.',g:['num','who']},s:{t:'Sorteos',e:'🎡',c:'#ff6b9c',d:'Ruleta y equipos al azar.',g:['wheel','teams']},t:{t:'Torneos',e:'🏆',c:'#9d86ff',d:'Eliminación directa hasta el campeón.',g:['bracket']},z:{t:'Azar virtual',e:'🎲',c:'#ff9a55',d:'Fichas virtuales sin valor real.',g:['hl','coin','dice']}};
+const GM={trivia:['Trivia familiar','🧠','Cada jugador responde en su turno. Más rápido, más puntos: 10 por acierto, hasta +6 por velocidad y +20 al ganador.'],num:['Adivina el número','🔢','Hay un número del 1 al 100 y 8 intentos entre todos. Quien acierta gana puntos; menos intentos, más puntos.'],who:['¿Quién soy?','🕵️','Pide pistas hasta adivinar. Con menos pistas ganas más puntos. Tienes 3 intentos.'],wheel:['Ruleta de nombres','🎡','Escribe un nombre por línea y gira la ruleta.'],teams:['Equipos al azar','👥','Escribe los nombres, elige cuántos equipos y reparte.'],bracket:['Torneo','🏆','Escribe de 3 a 16 participantes. Toca al ganador de cada duelo hasta la final. El campeón gana 50 puntos.'],hl:['Mayor o menor','🃏','¿La siguiente carta será mayor o menor? Acierta y ganas la apuesta; empate la devuelve.'],coin:['Cara o cruz','🪙','Elige un lado y lanza. Acierta y ganas la apuesta.'],dice:['Dados','🎲','Apuesta si la suma de dos dados será menor, igual o mayor que 7. El 7 paga 4 a 1.']};
+let V='home',A=null,SC={},TM;const GI={};
+function go(v,a){snd.click();clearInterval(TM);V=v;A=a;render()}
+function render(){$('#app').innerHTML={home:vHome,cat:vCat,game:vGame,prof:vProf,online:vOnline}[V]();if(V==='game')GI[A]();if(V==='online')onlineInit();$('#nav').innerHTML=[['home','Inicio',0],...Object.entries(CATS).map(([k,c])=>['cat',c.e+' '+c.t,k]),['online','🌐 Online',0],['prof','👤 Perfil',0]].map(([v,t,a])=>`<button class="${V===v&&(!a||A===a||(V==='game'&&CATS[a]?.g.includes(A)))?'on':''}" onclick="go('${v}'${a?",'"+a+"'":''})">${t}</button>`).join('');$('#bs').textContent=S.snd?'🔊 Sonido':'🔇 Sin sonido';scrollTo(0,0)}
+const bar=t=>`<div class="chips">${S.P.map((p,i)=>`<span class="chip ${i===t%S.P.length?'on':''}">${esc(p)} <b>${SC[p]||0}</b></span>`).join('')}</div>`;
+function vHome(){const top=Object.entries(S.board).sort((a,b)=>b[1]-a[1]).slice(0,5);
+return `<section class="hero"><div><h1>¿ABURRIDO?<br>¡ES HORA DE JUGAR!</h1><p>Elige un juego, pasa el dispositivo y compite con tu familia. Todo con puntos virtuales: nada de dinero real.</p><button class="btn big" onclick="go('game',Object.keys(GM)[rnd(9)])">Jugar ahora</button> <button class="btn alt big" onclick="go('online')">🌐 Jugar online</button></div>
+<div class="card"><div class="av">${S.av}</div><h2>${esc(S.name)}</h2><p>Nivel ${lv()} · ${S.pts} puntos · ${S.wins} victorias</p><div class="xp"><i style="width:${S.xp%100}%"></i></div><small>${100-S.xp%100} XP para el nivel ${lv()+1}</small></div></section>
+<h2>Categorías</h2><div class="grid">${Object.entries(CATS).map(([k,c])=>`<button class="cat" style="--c:${c.c}" onclick="go('cat','${k}')"><span class="e">${c.e}</span><b>${c.t}</b>${c.d}</button>`).join('')}</div>
+<div class="row"><div class="card" style="flex:1;min-width:260px"><h3>Jugadores en este dispositivo</h3><label>Cantidad <select onchange="setN(+this.value)">${[1,2,3,4,5,6,7,8,9,10].map(n=>`<option ${n===S.P.length?'selected':''}>${n}</option>`).join('')}</select></label><div id="pl">${S.P.map((p,i)=>`<p><input value="${esc(p)}" maxlength="14" aria-label="Jugador ${i+1}" onchange="setP(${i},this.value)"></p>`).join('')}</div><small>Los turnos rotan en este orden en cada juego.</small></div>
+<div class="card" style="flex:1;min-width:260px"><h3>Ranking de jugadores</h3>${top.length?`<table>${top.map(([n,p],i)=>`<tr><td>${['🥇','🥈','🥉','4.','5.'][i]}</td><td>${esc(n)}</td><td><b>${p}</b></td></tr>`).join('')}</table>`:'<p class="mu">Aún no hay puntos. Gana una partida para aparecer aquí.</p>'}<h3 style="margin-top:12px">Todos los juegos</h3><div class="chips">${Object.entries(GM).map(([k,g])=>`<button class="chip" style="cursor:pointer;font:inherit;color:inherit" onclick="go('game','${k}')">${g[1]} ${g[0]}</button>`).join('')}</div></div></div>`}
+function setN(n){while(S.P.length<n)S.P.push('Jugador '+(S.P.length+1));S.P.length=n;save();render()}
+function setP(i,v){v=v.trim()||'Jugador '+(i+1);if(i===0)S.name=v;S.P[i]=v;save()}
+function vCat(){const c=CATS[A];return `<h2>${c.e} ${c.t}</h2><p class="mu">${c.d}</p><div class="grid">${c.g.map(g=>`<button class="cat" style="--c:${c.c}" onclick="go('game','${g}')"><span class="e">${GM[g][1]}</span><b>${GM[g][0]}</b>${GM[g][2].split('.')[0]}.</button>`).join('')}</div>`}
+function vGame(){return `<button class="back" onclick="go('cat','${Object.keys(CATS).find(k=>CATS[k].g.includes(A))}')">← Volver</button><h2>${GM[A][1]} ${GM[A][0]}</h2><p class="mu">${GM[A][2]}</p><div id="g"></div>`}
+/* ---- TRIVIA ---- */
+const QB=`Inglés|¿Cómo se dice manzana en inglés?|Apple|Orange|Grape|Pear|Apple es manzana en inglés.
+Inglés|¿Cuál es el pasado de go?|Went|Goed|Gone|Going|Go es irregular: go, went, gone.
+Inglés|¿Plural de child?|Children|Childs|Childes|Childrens|Child tiene plural irregular: children.
+Español|¿Cuál es un sinónimo de feliz?|Contento|Triste|Cansado|Enojado|Feliz y contento significan lo mismo.
+Español|¿Cuál palabra está bien escrita?|Hacer|Aser|Hazer|Acer|El verbo es hacer, con h y c.
+Español|¿Cuál de estas palabras es un verbo?|Correr|Mesa|Rápido|Azul|Correr expresa una acción.
+Cultura general|¿Cuántos colores tiene el arcoíris?|7|5|6|8|Rojo, naranja, amarillo, verde, azul, añil y violeta.
+Cultura general|¿Cuántos días tiene un año bisiesto?|366|365|364|367|Febrero tiene 29 días y suma 366.
+Cultura general|¿Qué órgano bombea la sangre?|Corazón|Pulmón|Hígado|Riñón|El corazón impulsa la sangre por el cuerpo.
+Historia|¿En qué año inició la Independencia de México?|1810|1821|1910|1492|El Grito de Dolores fue en 1810.
+Historia|¿Quién fue el primer presidente de Estados Unidos?|George Washington|Abraham Lincoln|Thomas Jefferson|John Adams|Washington gobernó de 1789 a 1797.
+Historia|¿Qué civilización construyó Machu Picchu?|Inca|Maya|Azteca|Romana|Los incas lo levantaron en los Andes.
+Geografía|¿Cuál es la capital de Francia?|París|Lyon|Madrid|Roma|París es la capital francesa.
+Geografía|¿Cuál es el océano más grande?|Pacífico|Atlántico|Índico|Ártico|El Pacífico cubre cerca de un tercio del planeta.
+Geografía|¿En qué continente está Egipto?|África|Asia|Europa|América|Egipto está al noreste de África.
+Ciencias|¿Cuál es la fórmula química del agua?|H2O|CO2|O2|NaCl|Dos de hidrógeno y uno de oxígeno.
+Ciencias|¿Cuál es el planeta más grande del sistema solar?|Júpiter|Saturno|Marte|Tierra|Júpiter es un gigante gaseoso.
+Ciencias|¿Qué gas necesitamos para respirar?|Oxígeno|Helio|Nitrógeno|Hidrógeno|Usamos el oxígeno para obtener energía.
+Lógica|¿Qué número sigue? 2, 4, 8, 16, ...|32|24|30|20|Cada número es el doble del anterior.
+Lógica|¿Qué pesa más: 1 kg de plumas o 1 kg de hierro?|Pesan lo mismo|Las plumas|El hierro|Depende|Ambos pesan 1 kg.
+Lógica|Todos los gatos son animales y Tom es un gato. Entonces Tom es...|Un animal|Un perro|Una planta|No se sabe|Si todos los gatos son animales, Tom lo es.
+Entretenimiento|¿Cuántas casillas tiene un tablero de ajedrez?|64|36|81|100|Son 8 filas por 8 columnas.
+Entretenimiento|¿De qué color es Pikachu?|Amarillo|Azul|Rojo|Verde|Pikachu es un Pokémon eléctrico amarillo.
+Entretenimiento|¿Cuántos jugadores de un equipo hay en la cancha en fútbol?|11|9|10|12|Cada equipo juega con 11.`.split('\n').map(l=>l.split('|'));
+const SUBJ=['Matemáticas','Inglés','Español','Cultura general','Historia','Geografía','Ciencias','Lógica','Entretenimiento'];
+function mq(d){const m=[12,40,120][d];let a=1+rnd(m),b=1+rnd(m),o=rnd(3),r,t;if(o==0){r=a+b;t=a+' + '+b}else if(o==1){if(b>a)[a,b]=[b,a];r=a-b;t=a+' − '+b}else{a=2+rnd(d?12:9);b=2+rnd(d?12:9);r=a*b;t=a+' × '+b}const w=new Set();while(w.size<3){const v=r+rnd(11)-5;if(v!=r&&v>=0)w.add(v)}return['Matemáticas','¿Cuánto es '+t+'?',String(r),...[...w].map(String),t+' = '+r+'.']}
+let Q,qi,TD,left;
+GI.trivia=()=>{$('#g').innerHTML=`<div class="row2"><label>Tema<br><select id="ts"><option>Mixto</option>${SUBJ.map(s=>`<option>${s}</option>`).join('')}</select></label><label>Nivel<br><select id="td"><option value="0">Fácil (20 s)</option><option value="1">Medio (14 s)</option><option value="2">Difícil (9 s)</option></select></label><button class="btn" onclick="tStart()">Empezar</button></div>`};
+function tStart(){const s=$('#ts').value;TD=+$('#td').value;let L=sh(QB);if(s==='Matemáticas')Q=Array.from({length:8},()=>mq(TD));else if(s==='Mixto')Q=sh([...L.slice(0,5),mq(TD),mq(TD),mq(TD)]);else Q=[...L.filter(x=>x[0]===s),...L.filter(x=>x[0]!==s)].slice(0,8);SC={};qi=0;snd.click();showQ()}
+function showQ(){const q=Q[qi],o=sh(q.slice(2,6)),p=S.P[qi%S.P.length],T=[20,14,9][TD];left=T;
+$('#g').innerHTML=bar(qi)+`<div class="card"><small>${q[0]} · Pregunta ${qi+1} de ${Q.length}</small><h3>${esc(q[1])}</h3><div class="tb"><i id="tbi"></i></div><p>Turno de <b>${esc(p)}</b> · <span id="tl">${left}</span> s</p><div class="opts">${o.map(x=>`<button class="opt" data-v="${esc(x)}">${esc(x)}</button>`).join('')}</div><div id="fb"></div></div>`;
+document.querySelectorAll('.opt').forEach(b=>b.onclick=()=>ans(b.dataset.v));clearInterval(TM);TM=setInterval(()=>{left--;$('#tl').textContent=left;$('#tbi').style.width=left/T*100+'%';if(left<=0)ans(null)},1000)}
+function ans(v){clearInterval(TM);const q=Q[qi],p=S.P[qi%S.P.length],ok=v===q[2];document.querySelectorAll('.opt').forEach(b=>{b.disabled=true;if(b.dataset.v===q[2])b.classList.add('good');else if(b.dataset.v===v)b.classList.add('bad')});
+let pts=0;if(ok){pts=10+Math.floor(left/3);award(pts,p);SC[p]=(SC[p]||0)+pts;snd.ok()}else snd.bad();
+$('#fb').innerHTML=`<p><b>${v===null?'Se acabó el tiempo.':ok?'¡Correcto! +'+pts:'Casi.'}</b> ${esc(q[6])}</p><button class="btn" onclick="tNext()">${qi+1<Q.length?'Siguiente pregunta':'Ver resultados'}</button>`}
+function tNext(){qi++;qi<Q.length?showQ():tEnd()}
+function tEnd(){const r=S.P.map(p=>[p,SC[p]||0]).sort((a,b)=>b[1]-a[1]),w=r[0][0],uni=r.length>1&&r[0][1]>r[1][1];if(uni||r.length===1&&r[0][1]>0){if(r.length>1){award(20,w);SC[w]+=20}done(w);log('Trivia ganada por '+w);confetti();snd.win()}else{done('');log('Trivia empatada')}
+$('#g').innerHTML=`<div class="card"><h3>${uni||r.length===1?'🏆 Ganó '+esc(w):'🤝 Empate'}</h3><table>${r.map(([p,s],i)=>`<tr><td>${i+1}.</td><td>${esc(p)}</td><td><b>${SC[p]||0} pts</b></td></tr>`).join('')}</table><p class="mu">Se suma +20 al ganador cuando juegan varias personas.</p><button class="btn" onclick="GI.trivia()">Jugar otra vez</button> <button class="btn alt" onclick="go('home')">Inicio</button></div>`}
+/* ---- ADIVINA EL NÚMERO ---- */
+let N;GI.num=()=>{SC={};N={s:1+rnd(100),t:0,m:8};nUI('Piensa un número del 1 al 100.',0)};
+function nUI(msg,end){$('#g').innerHTML=bar(N.t)+`<div class="card"><p class="big">${msg}</p>${end?'<button class="btn" onclick="GI.num()">Otra partida</button>':`<p>Turno de <b>${esc(S.P[N.t%S.P.length])}</b> · intentos restantes: ${N.m-N.t}</p><div class="row2"><input id="ni" type="number" min="1" max="100" onkeydown="if(event.key==='Enter')nG()"><button class="btn" onclick="nG()">Probar</button></div>`}</div>`;if(!end)$('#ni').focus()}
+function nG(){const v=+$('#ni').value;if(!v||v<1||v>100)return;const p=S.P[N.t%S.P.length];N.t++;if(v===N.s){const pts=10+(N.m-N.t)*5;award(pts,p);SC[p]=(SC[p]||0)+pts;done(p);log('Adivina el número: '+p);snd.win();confetti();nUI(`🎉 ${esc(p)} acertó: era ${N.s}. +${pts} puntos`,1)}else if(N.t>=N.m){snd.bad();done('');nUI(`Se acabaron los intentos. Era ${N.s}.`,1)}else{snd.bad();nUI(`${v} es ${v<N.s?'más bajo ⬆ que el secreto':'más alto ⬇ que el secreto'}.`,0)}}
+/* ---- ¿QUIÉN SOY? ---- */
+const WH=[['elefante',['Soy el animal terrestre más grande.','Tengo una trompa muy larga.','Tengo colmillos de marfil.','Vivo en África y Asia.']],['luna',['Salgo casi siempre de noche.','Cambio de forma cada semana.','Giro alrededor de la Tierra.','Los astronautas ya caminaron sobre mí.']],['bicicleta',['Tengo dos ruedas.','Me mueves con los pies.','Tengo manubrio y pedales.','No uso gasolina.']],['pingüino',['Soy un ave que no vuela.','Vivo en lugares muy fríos.','Camino como si usara esmoquin.','Nado muy bien.']],['pizza',['Nací en Italia.','Soy redonda y se me corta en triángulos.','Llevo salsa de tomate y queso.','Me hornean y a veces llevo pepperoni.']]];
+let W;GI.who=()=>{SC={};W={it:WH[rnd(WH.length)],c:1,t:0,l:3};wUI('')};
+const nz=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+function wUI(msg,end){$('#g').innerHTML=bar(W.t)+`<div class="card">${W.it[1].slice(0,W.c).map(c=>`<p>💡 ${c}</p>`).join('')}<p class="mu">${msg}</p>${end?'<button class="btn" onclick="GI.who()">Otra ronda</button>':`<p>Turno de <b>${esc(S.P[W.t%S.P.length])}</b> · intentos: ${W.l}</p><div class="row2"><input id="wi" onkeydown="if(event.key==='Enter')wG()" placeholder="¿Quién soy?"><button class="btn" onclick="wG()">Adivinar</button>${W.c<4?'<button class="btn alt" onclick="W.c++;snd.click();wUI(\'\')">Otra pista</button>':''}</div>`}</div>`}
+function wG(){const g=nz($('#wi').value);if(!g)return;const p=S.P[W.t%S.P.length];if(g===nz(W.it[0])){const pts=(5-W.c)*5;award(pts,p);SC[p]=pts;done(p);log('¿Quién soy?: '+p);snd.win();confetti();wUI(`🎉 ¡${esc(p)} acertó! Era ${W.it[0]}. +${pts} puntos`,1)}else{W.l--;W.t++;snd.bad();W.l?wUI('Esa no es. Le toca al siguiente.'):(done(''),wUI('Se acabaron los intentos. Era '+W.it[0]+'.',1))}}
+/* ---- RULETA Y EQUIPOS ---- */
+let WR=0,spinning=0;
+GI.wheel=()=>{$('#g').innerHTML=`<div class="row"><textarea id="wn" rows="8" oninput="drawW()">${S.P.length>1?S.P.join('\n'):'Ana\nLuis\nSofía\nMateo'}</textarea><div><div class="wheel"><canvas id="wc" width="320" height="320" style="max-width:100%"></canvas></div><div class="res" id="wr"></div><button class="btn" onclick="spin()">Girar</button></div></div>`;drawW()};
+function drawW(){const c=$('#wc'),x=c.getContext('2d'),n=names('#wn'),s=2*Math.PI/Math.max(n.length,1),cols=['#ff6b9c','#ffd23f','#3fe0d0','#ff9a55','#9d86ff'];x.clearRect(0,0,320,320);n.forEach((t,i)=>{x.beginPath();x.moveTo(160,160);x.arc(160,160,150,WR+i*s,WR+(i+1)*s);x.fillStyle=cols[i%5];x.fill();x.save();x.translate(160,160);x.rotate(WR+(i+.5)*s);x.fillStyle='#1b1140';x.font='bold 15px Nunito,sans-serif';x.textAlign='right';x.fillText(t.slice(0,14),140,5);x.restore()})}
+function spin(){const n=names('#wn');if(n.length<2){$('#wr').textContent='Escribe al menos 2 nombres.';return}if(spinning)return;spinning=1;$('#wr').textContent='';const st=WR,tot=(5+Math.random()*4)*2*Math.PI,t0=performance.now(),s=2*Math.PI/n.length;let last=-1;(function f(now){const p=Math.min(1,(now-t0)/4200);WR=st+tot*(1-Math.pow(1-p,3));drawW();const i=Math.floor((((1.5*Math.PI-WR)%(2*Math.PI))+2*Math.PI)%(2*Math.PI)/s);if(i!==last){last=i;snd.tick()}if(p<1)requestAnimationFrame(f);else{spinning=0;$('#wr').textContent='🎉 '+n[i];log('Ruleta: salió '+n[i]);snd.win();confetti()}})(t0)}
+GI.teams=()=>{$('#g').innerHTML=`<div class="row"><textarea id="wn" rows="8">${S.P.length>1?S.P.join('\n'):'Ana\nLuis\nSofía\nMateo'}</textarea><div><label>Equipos<br><input id="tk" type="number" min="2" max="10" value="2"></label><p><button class="btn" onclick="mkT()">Repartir</button></p></div></div><div id="tr" class="teams"></div>`};
+function mkT(){const n=sh(names('#wn')),k=+$('#tk').value;if(k<2||k>n.length){$('#tr').innerHTML='<p class="mu">Necesitas al menos tantos nombres como equipos (mínimo 2).</p>';return}const T=Array.from({length:k},()=>[]);n.forEach((p,i)=>T[i%k].push(p));$('#tr').innerHTML=T.map((t,i)=>`<div class="card"><h3>Equipo ${i+1}</h3>${t.map(x=>`<p>${esc(x)}</p>`).join('')}</div>`).join('');snd.win();log('Equipos al azar: '+k+' equipos')}
+/* ---- TORNEO ---- */
+let B;GI.bracket=()=>{$('#g').innerHTML=`<textarea id="wn" rows="8" placeholder="Un participante por línea">${S.P.length>2?S.P.join('\n'):''}</textarea><p><button class="btn" onclick="bGo()">Crear torneo</button></p><div id="bt"></div>`};
+function bGo(){const n=sh(names('#wn'));if(n.length<3||n.length>16){$('#bt').innerHTML='<p class="mu">Escribe entre 3 y 16 participantes.</p>';return}let size=2;while(size<n.length)size*=2;const by=size-n.length,a=[];for(let i=0;i<by;i++)a.push(n[i],'BYE');a.push(...n.slice(by));B={r:a,w:[],all:n,t0:Date.now()};bAuto();clearInterval(TM);TM=setInterval(()=>{const e=$('#bc');if(e){const s=Math.floor((Date.now()-B.t0)/1000);e.textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}},1000);bR()}
+function bAuto(){for(let i=0;i<B.r.length/2;i++){const a=B.r[2*i],b=B.r[2*i+1];if(a==='BYE')B.w[i]=b;else if(b==='BYE')B.w[i]=a}}
+const rn=l=>l==2?'Final':l==4?'Semifinales':l==8?'Cuartos de final':'Ronda de '+l;
+function bR(){const l=B.r.length,m=l/2;let h=`<div class="card"><h3>${rn(l)}</h3><p class="mu">Tiempo de ronda: <b id="bc">00:00</b></p>`;for(let i=0;i<m;i++){const a=B.r[2*i],b=B.r[2*i+1],w=B.w[i];h+=`<div class="m"><button class="${w===a?'w':''}" onclick="bP(${i},0)" ${w&&!(a!=='BYE'&&b!=='BYE')?'disabled':''}>${esc(a)}</button><span>vs</span><button class="${w===b?'w':''}" onclick="bP(${i},1)" ${w&&!(a!=='BYE'&&b!=='BYE')?'disabled':''}>${esc(b)}</button></div>`}$('#bt').innerHTML=h+'</div>'}
+function bP(i,s){const l=B.r.length;B.w[i]=B.r[2*i+s];snd.click();const full=Array.from({length:l/2},(_,k)=>B.w[k]);if(full.every(Boolean)){if(l===2)return bChamp(B.w[0]);B.r=full;B.w=[];B.t0=Date.now();bAuto()}bR()}
+function bChamp(c){clearInterval(TM);award(50,c);S.champs.unshift({n:c,d:new Date().toLocaleDateString('es-MX')});S.champs=S.champs.slice(0,10);B.all.forEach(p=>{S.board[p]=S.board[p]||0});done(c);log('Torneo: campeón '+c);snd.win();confetti();$('#bt').innerHTML=`<div class="card"><h3>🏆 Campeón: ${esc(c)}</h3><p>+50 puntos y un lugar en el historial de campeones.</p><button class="btn" onclick="GI.bracket()">Nuevo torneo</button></div>`}
+/* ---- AZAR VIRTUAL ---- */
+let BT=10,CM='',H=1+rnd(13),HS='♥';const RK=['','A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+function cUI(inner){return `<div class="card"><p>Fichas virtuales: <b>${S.fichas}</b> <small>(sin valor real y separadas de tus puntos)</small></p><label>Apuesta <select id="bet" onchange="BT=+this.value">${[10,20,50].map(n=>`<option ${n===BT?'selected':''}>${n}</option>`).join('')}</select></label>${inner}<p class="big">${CM}</p>${S.fichas<10?'<button class="btn alt" onclick="S.fichas=100;save();GI[A]()">Recargar 100 fichas</button>':''}<h4>Historial</h4><ul>${S.az.slice(0,8).map(x=>`<li>${esc(x)}</li>`).join('')||'<li class="mu">Sin jugadas todavía.</li>'}</ul></div>`}
+function chk(){if(S.fichas<BT){CM='No tienes fichas suficientes: baja la apuesta o recarga.';snd.bad();GI[A]();return 0}return BT}
+function fin(d,t){S.fichas+=d;S.az.unshift(t+(d?` (${d>0?'+':''}${d})`:' (sin cambio)'));S.az=S.az.slice(0,20);CM=t;save();d>0?(snd.win(),confetti()):d<0?snd.bad():snd.click();GI[A]()}
+GI.hl=()=>{$('#g').innerHTML=cUI(`<div><span class="pc ${'♥♦'.includes(HS)?'r':''}">${RK[H]}${HS}</span></div><p><button class="btn" onclick="hl(1)">Mayor</button> <button class="btn alt" onclick="hl(-1)">Menor</button></p>`)};
+function hl(d){const b=chk();if(!b)return;const n=1+rnd(13),old=H;H=n;HS='♥♦♠♣'[rnd(4)];n===old?fin(0,`Salió ${RK[n]}, igual que antes: empate`):fin((n>old)===(d>0)?b:-b,`Era ${RK[old]}, salió ${RK[n]}: elegiste ${d>0?'mayor':'menor'}`)}
+GI.coin=()=>{$('#g').innerHTML=cUI(`<p><span class="coin" id="cc">🪙</span></p><p><button class="btn" onclick="coinF('Cara')">Cara</button> <button class="btn alt" onclick="coinF('Cruz')">Cruz</button></p>`)};
+function coinF(s){const b=chk();if(!b)return;snd.click();$('#cc').classList.add('fl');setTimeout(()=>{const r=rnd(2)?'Cara':'Cruz';fin(r===s?b:-b,`Elegiste ${s}, salió ${r}`)},750)}
+GI.dice=()=>{$('#g').innerHTML=cUI(`<p class="big">${CM.includes('suma')?'':''}</p><p><button class="btn" onclick="dF(-1)">Menos de 7</button> <button class="btn alt" onclick="dF(0)">Exacto 7</button> <button class="btn" onclick="dF(1)">Más de 7</button></p>`)};
+function dF(k){const b=chk();if(!b)return;const a=1+rnd(6),c=1+rnd(6),s=a+c,w=k===0?s===7:k<0?s<7:s>7,f=n=>String.fromCodePoint(0x267F+n);fin(w?(k===0?b*4:b):-b,`${f(a)} ${f(c)} suma ${s}`)}
+/* ---- PERFIL ---- */
+let RS=0;
+function vProf(){const ach=[['🥇','Primera victoria',S.wins>=1],['⭐','100 puntos',S.pts>=100],['🚀','Nivel 3',lv()>=3],['🏆','Campeón de torneo',S.champs.length>0],['🎲','10 partidas',S.played>=10]];
+return `<h2>Mi perfil</h2><div class="row"><div class="card" style="flex:1;min-width:260px"><div class="av">${S.av}</div><label>Nombre<br><input value="${esc(S.name)}" maxlength="14" onchange="setP(0,this.value);render()"></label><p>Avatar</p><div class="chips">${['🦊','🐼','🐯','🦄','🐸','🐙','🦖','🤖'].map(a=>`<button class="chip ${a===S.av?'on':''}" style="cursor:pointer;font-size:1.5rem" onclick="S.av='${a}';save();snd.click();render()">${a}</button>`).join('')}</div><p>Nivel ${lv()} · ${S.pts} puntos · ${S.xp} XP</p><div class="xp"><i style="width:${S.xp%100}%"></i></div><p>Victorias: ${S.wins} · Partidas: ${S.played}</p></div>
+<div class="card" style="flex:1;min-width:260px"><h3>Logros</h3>${ach.map(a=>`<p style="opacity:${a[2]?1:.4}">${a[0]} ${a[1]} ${a[2]?'✔':''}</p>`).join('')}<h3>Campeones de torneo</h3>${S.champs.map(c=>`<p>🏆 ${esc(c.n)} <small>${c.d}</small></p>`).join('')||'<p class="mu">Aún no hay campeones.</p>'}</div></div>
+<div class="card"><h3>Historial de partidas</h3>${S.hist.map(h=>`<p>${esc(h)}</p>`).join('')||'<p class="mu">Todavía no has jugado.</p>'}<button class="btn alt" onclick="if(RS){localStorage.removeItem('pv');location.reload()}else{RS=1;this.textContent='¿Seguro? Toca otra vez para borrar todo'}">Borrar mis datos</button></div>`}
+render();
+</script>
+<script src="/online.js"></script></body></html>

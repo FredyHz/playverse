@@ -1,0 +1,12 @@
+# Despliegue GRATIS en Render (Blueprint). La base de datos vive en Neon (gratis); aquí solo va la app.
+services:
+  - type: web
+    name: playverse
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false   # pega aquí la cadena de conexión de Neon cuando Render la pida
