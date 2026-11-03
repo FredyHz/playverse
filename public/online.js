@@ -28,13 +28,14 @@
   window.vOnline = () => '<h2>🌐 Jugar online</h2><div id="ov"></div>';
   window.onlineInit = async () => {
     if (O.tok && !O.user) { try { O.user = (await api('me')).user; connect(); } catch (e) { O.tok = null; ls.set('pvt'); } }
-    if (O.user) { connect(); if (O.pend && !O.room) { const c = O.pend; O.pend = null; const r = await emit('room:join', { code: c }); if (r.error) O.msg = r.error; history.replaceState(null, '', '/'); } if (!O.lbd) loadLb(); }
+    if (O.user) { connect(); if (O.pend && !O.room) { const c = O.pend; O.pend = null; const r = await emit('room:join', { code: c }); if (r.error) O.msg = r.error; history.replaceState(null, '', '/#/online'); } if (O.autoCreate && !O.room) { O.autoCreate = 0; const r = await emit('room:create'); O.msg = r.error || ''; } if (!O.lbd) loadLb(); }
     oR();
   };
 
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const msg = () => O.msg ? `<p style="color:var(--pk)"><b>${esc(O.msg)}</b></p>` : '';
   function oR() {
+    window.refreshChrome && window.refreshChrome();
     const el = $('#ov'); if (!el) return;
     el.innerHTML = !O.user ? fAuth() : !O.room ? fHome() : O.room.phase === 'lobby' ? fLobby() : O.room.phase === 'playing' ? fPlay() : fEnd();
   }
@@ -132,5 +133,12 @@
     },
     lb(p) { O.lb = p; loadLb(); },
   };
+  window.PVO = {
+    user: () => O.user,
+    clear() { O.autoCreate = 0; },
+    create() { O.autoCreate = 1; go('online'); },
+    join(c) { c = String(c || '').trim().toUpperCase(); if (!c) return; O.pend = c; go('online'); },
+  };
+  if (O.tok && !O.user) api('me').then(d => { O.user = d.user; oR(); }).catch(() => {});
   if (O.pend) go('online');
 })();
