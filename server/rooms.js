@@ -1,5 +1,6 @@
 // Salas multijugador en tiempo real (Socket.IO). El servidor decide todo: preguntas, tiempos y puntos.
 const QB = require('./questions.json');
+const BASTA = require('../public/js/basta-core.js'); // mismas reglas de puntuación que el modo local
 const rnd = n => Math.floor(Math.random() * n);
 const shuffle = a => [...a].sort(() => Math.random() - 0.5);
 const SECS = [20, 14, 9];
@@ -86,6 +87,53 @@ module.exports = (io, db) => {
       .finally(() => { io.to(r.code).emit('trivia:end', { winner: winner && winner.name, ranking: results }); push(r); });
   }
 
+  // ---------- BASTA (el servidor decide la letra, el tiempo y los puntos) ----------
+  const members = r => [...r.players.values()];
+  function startBasta(r) { r.bs = { round: 0, rej: new Set() }; io.to(r.code).emit('room:started'); startRound(r); }
+  function startRound(r) {
+    const b = r.bs, st = r.settings, ps = members(r);
+    b.letter = BASTA.LETTERS[rnd(BASTA.LETTERS.length)]; b.cats = st.bcats.slice(); b.rej = new Set();
+    b.answers = new Map(); b.phase = 'write'; b.stoppedBy = null; b.secs = st.btime; b.endsAt = Date.now() + b.secs * 1000;
+    b.order = ps.map(p => p.id); b.base = new Map(ps.map(p => [p.id, p.score])); b.info = new Map(ps.map(p => [p.id, { name: p.name, avatar: p.avatar }]));
+    const data = { round: b.round + 1, rounds: st.brounds, letter: b.letter, cats: b.cats, secs: b.secs, left: b.secs * 1000 };
+    b.last = { ev: 'basta:round', data };
+    push(r); io.to(r.code).emit('basta:round', data);
+    clearTimeout(r.timer); r.timer = setTimeout(() => closing(r, null), b.secs * 1000 + 600);
+  }
+  function closing(r, by) {
+    const b = r.bs; if (!b || b.phase !== 'write') return;
+    b.phase = 'closing'; clearTimeout(r.timer);
+    io.to(r.code).emit('basta:stopping', { by });
+    r.timer = setTimeout(() => sendResults(r, true), 1500); // margen para recibir las últimas respuestas
+  }
+  function sendResults(r, first) {
+    const b = r.bs; if (!b) return;
+    b.phase = 'results';
+    const answers = b.order.map(id => b.answers.get(id) || b.cats.map(() => ''));
+    const R = BASTA.scoreRound({ answers, letter: b.letter, rejected: b.rej });
+    const players = b.order.map((id, i) => {
+      const inf = b.info.get(id), p = r.players.get(id), sum = b.base.get(id) + R.players[i].total;
+      if (p) p.score = sum;
+      return { id, name: inf.name, avatar: inf.avatar, answers: answers[i], cells: R.players[i].cells, total: R.players[i].total, sum };
+    });
+    const mx = Math.max(...players.map(p => p.total)), top = players.filter(p => p.total === mx);
+    const data = { round: b.round + 1, rounds: r.settings.brounds, letter: b.letter, cats: b.cats, stoppedBy: b.stoppedBy, winner: top.length === 1 && mx > 0 ? top[0].name : null, players };
+    b.last = { ev: 'basta:results', data };
+    io.to(r.code).emit('basta:results', data); push(r);
+  }
+  function finishBasta(r) {
+    const b = r.bs; r.phase = 'end';
+    const ranking = members(r).sort((a, c) => c.score - a.score), winner = ranking.length > 1 && ranking[0].score > ranking[1].score ? ranking[0] : null;
+    const results = ranking.map(p => ({ id: p.id, name: p.name, pts: Math.round(p.score / 10) + (winner && p.id === winner.id ? 20 : 0) }));
+    db.finishMatch(r.code, 'basta', winner ? winner.id : null, results)
+      .catch(e => console.error('No se guardó la partida:', e.message))
+      .finally(() => {
+        const data = { winner: winner && winner.name, ranking: ranking.map(p => ({ id: p.id, name: p.name, avatar: p.avatar, score: p.score })) };
+        b.last = { ev: 'basta:end', data };
+        io.to(r.code).emit('basta:end', data); push(r);
+      });
+  }
+
   io.on('connection', socket => {
     const u = socket.data.user;
     const mine = () => rooms.get(byUser.get(u.id));
@@ -94,6 +142,10 @@ module.exports = (io, db) => {
       clearTimeout(r.idle); socket.join(r.code); byUser.set(u.id, r.code);
       pickHost(r); push(r);
       if (r.phase === 'playing' && r.pub && r.cur && !r.cur.done) socket.emit('trivia:question', { ...r.pub, left: Math.max(0, r.cur.endsAt - Date.now()) });
+      if (r.bs && r.bs.last && (r.phase === 'playing' || r.phase === 'end')) {
+        const l = r.bs.last;
+        socket.emit(l.ev, l.ev === 'basta:round' ? { ...l.data, left: Math.max(0, r.bs.endsAt - Date.now()) } : l.data);
+      }
     };
     const leaveCurrent = () => { const r = mine(); if (r) { socket.leave(r.code); removePlayer(r, u.id); } };
 
@@ -104,7 +156,7 @@ module.exports = (io, db) => {
     socket.on('room:create', (_, ack) => {
       leaveCurrent();
       const code = newCode();
-      const r = { code, host: u.id, phase: 'lobby', settings: { subject: 'Mixto', diff: 1, rounds: 8 }, players: new Map(), Q: [], qi: 0 };
+      const r = { code, host: u.id, phase: 'lobby', settings: { game: 'trivia', subject: 'Mixto', diff: 1, rounds: 8, brounds: 3, btime: 60, bcats: BASTA.CATS.slice(0, 6) }, players: new Map(), Q: [], qi: 0 };
       r.players.set(u.id, { id: u.id, ready: true, score: 0 });
       rooms.set(code, r); attach(r, r.players.get(u.id));
       ack?.({ ok: true, code });
@@ -128,6 +180,10 @@ module.exports = (io, db) => {
       const subs = ['Mixto', 'Matemáticas', 'Inglés', 'Español', 'Cultura general', 'Historia', 'Geografía', 'Ciencias', 'Lógica', 'Entretenimiento'];
       if (subs.includes(s?.subject)) r.settings.subject = s.subject;
       if ([0, 1, 2].includes(s?.diff)) r.settings.diff = s.diff;
+      if (['trivia', 'basta'].includes(s?.game)) r.settings.game = s.game;
+      if ([1, 3, 5].includes(s?.brounds)) r.settings.brounds = s.brounds;
+      if ([45, 60, 90].includes(s?.btime)) r.settings.btime = s.btime;
+      if (Array.isArray(s?.bcats)) r.settings.bcats = BASTA.sanitizeCats(s.bcats);
       push(r);
     });
     socket.on('room:start', (_, ack) => {
@@ -137,9 +193,13 @@ module.exports = (io, db) => {
       if (ps.some(p => p.id !== r.host && !p.ready)) return ack?.({ error: 'Todos los jugadores deben estar listos.' });
       for (const [id, p] of r.players) if (!p.connected) r.players.delete(id);
       r.players.forEach(p => { p.score = 0; });
-      r.Q = buildQuestions(r.settings.subject, r.settings.diff, r.settings.rounds); r.qi = 0; r.phase = 'playing';
-      push(r); io.to(r.code).emit('room:started');
-      r.timer = setTimeout(() => nextQuestion(r), 2500);
+      r.phase = 'playing';
+      if (r.settings.game === 'basta') startBasta(r);
+      else {
+        r.Q = buildQuestions(r.settings.subject, r.settings.diff, r.settings.rounds); r.qi = 0;
+        push(r); io.to(r.code).emit('room:started');
+        r.timer = setTimeout(() => nextQuestion(r), 2500);
+      }
       ack?.({ ok: true });
     });
     socket.on('trivia:answer', idx => {
@@ -149,8 +209,38 @@ module.exports = (io, db) => {
       socket.emit('trivia:answered');
       if ([...r.players.values()].filter(p => p.connected).every(p => r.cur.answers.has(p.id))) reveal(r);
     });
+
+    // ---- Basta ----
+    const bsStore = (r, arr) => { // guarda las respuestas del jugador (siempre limpias y con el largo correcto)
+      const b = r.bs; if (!b || !['write', 'closing'].includes(b.phase) || !b.order.includes(u.id)) return null;
+      const a = b.cats.map((_, k) => BASTA.clean(Array.isArray(arr) ? arr[k] : ''));
+      b.answers.set(u.id, a); return a;
+    };
+    socket.on('basta:answers', arr => { const r = mine(); if (r && r.phase === 'playing') bsStore(r, arr); });
+    socket.on('basta:stop', (arr, ack) => {
+      const r = mine(), reply = typeof ack === 'function' ? ack : () => {};
+      if (!r || r.phase !== 'playing' || !r.bs || r.bs.phase !== 'write') return reply({ error: 'La ronda ya terminó.' });
+      const a = bsStore(r, arr);
+      if (!a) return reply({ error: 'No estás en esta ronda.' });
+      if (a.some(x => BASTA.status(x, r.bs.letter) === 'vacia')) return reply({ error: 'Completa todas las categorías para decir ¡BASTA!' });
+      r.bs.stoppedBy = u.name; closing(r, u.name); reply({ ok: true });
+    });
+    socket.on('basta:reject', d => {
+      const r = mine(), b = r && r.bs;
+      if (!b || r.host !== u.id || b.phase !== 'results') return;
+      const i = b.order.indexOf(d?.id);
+      if (i < 0 || !Number.isInteger(d?.k) || d.k < 0 || d.k >= b.cats.length) return;
+      const key = i + '|' + d.k; b.rej.has(key) ? b.rej.delete(key) : b.rej.add(key);
+      sendResults(r);
+    });
+    socket.on('basta:next', () => {
+      const r = mine(), b = r && r.bs;
+      if (!b || r.host !== u.id || b.phase !== 'results' || r.phase !== 'playing') return;
+      if (b.round + 1 < r.settings.brounds) { b.round++; startRound(r); } else finishBasta(r);
+    });
     socket.on('room:again', () => {
       const r = mine(); if (!r || r.host !== u.id || r.phase !== 'end') return;
+      clearTimeout(r.timer); r.bs = null;
       r.phase = 'lobby'; r.players.forEach((p, id) => { p.score = 0; p.ready = id === r.host; if (!p.connected) r.players.delete(id); });
       push(r);
     });

@@ -14,7 +14,7 @@ function log(t){S.hist.unshift(new Date().toLocaleDateString('es-MX')+' - '+t);S
 function done(w){S.played++;if(w===S.name)S.wins++;save()}
 const GM={trivia:['Trivia familiar','🧠','Cada jugador responde en su turno. Más rápido, más puntos: 10 por acierto, hasta +6 por velocidad y +20 al ganador.'],num:['Adivina el número','🔢','Hay un número del 1 al 100 y 8 intentos entre todos. Quien acierta gana puntos; menos intentos, más puntos.'],who:['¿Quién soy?','🕵️','Pide pistas hasta adivinar. Con menos pistas ganas más puntos. Tienes 3 intentos.'],wheel:['Ruleta de nombres','🎡','Escribe un nombre por línea y gira la ruleta.'],teams:['Equipos al azar','👥','Escribe los nombres, elige cuántos equipos y reparte.'],bracket:['Torneo','🏆','Escribe de 3 a 16 participantes. Toca al ganador de cada duelo hasta la final. El campeón gana 50 puntos.'],hl:['Mayor o menor','🃏','¿La siguiente carta será mayor o menor? Acierta y ganas la apuesta; empate la devuelve.'],coin:['Cara o cruz','🪙','Elige un lado y lanza. Acierta y ganas la apuesta.'],dice:['Dados','🎲','Apuesta si la suma de dos dados será menor, igual o mayor que 7. El 7 paga 4 a 1.']};
 /* ===== PLAYVERSE 2.0: navegación, catálogo y páginas ===== */
-Object.assign(GM,{basta:['Basta (Stop)','✍️','Todos escriben una palabra por categoría que empiece con la letra elegida. El primero en terminar grita ¡BASTA!'],chess:['Ajedrez','♟️','El clásico juego de estrategia para dos jugadores.']});
+Object.assign(GM,{basta:['Basta (Stop)','✍️','Sale una letra y cada jugador escribe una palabra por categoría que empiece con ella. Única vale 100, repetida 50. Local por turnos u online en una sala.'],chess:['Ajedrez','♟️','El clásico juego de estrategia para dos jugadores.']});
 const CATS={k:{t:'Conocimiento',e:'🧠',d:'Preguntas con tiempo, niveles y explicación.'},a:{t:'Adivinanzas',e:'🔮',d:'Pistas, intentos y puntos por precisión.'},s:{t:'Sorteos',e:'🎡',d:'Ruleta y equipos al azar.'},t:{t:'Torneos',e:'🏆',d:'Eliminación directa hasta el campeón.'},z:{t:'Azar virtual',e:'🎰',d:'Fichas virtuales: sin dinero real.'},m:{t:'Juegos de mesa',e:'🧩',d:'Clásicos para jugar en grupo.'}};
 const GAMES={
 trivia:{cat:'k',a:'#7a5cff',b:'#22d3c5',pl:'1 a 10 jugadores',on:1},
@@ -26,7 +26,7 @@ bracket:{cat:'t',a:'#8a4dff',b:'#ff3d9a',pl:'3 a 16 participantes'},
 hl:{cat:'z',a:'#e0245e',b:'#ff8a3d',pl:'1 jugador'},
 coin:{cat:'z',a:'#e6a100',b:'#ffd23f',pl:'1 jugador'},
 dice:{cat:'z',a:'#7a5cff',b:'#ff3d9a',pl:'1 jugador'},
-basta:{cat:'m',a:'#17a86b',b:'#2ee6ff',pl:'2 a 10 jugadores',st:'soon',nuevo:1},
+basta:{cat:'m',a:'#17a86b',b:'#2ee6ff',pl:'2 a 10 jugadores',on:1,nuevo:1},
 chess:{cat:'m',a:'#4b5bd6',b:'#9aa6ff',pl:'2 jugadores',st:'soon'}};
 const bar=t=>`<div class="chips">${S.P.map((p,i)=>`<span class="chip ${i===t%S.P.length?'on':''}">${esc(p)} <b>${SC[p]||0}</b></span>`).join('')}</div>`;
 function tgS(){S.snd=S.snd?0:1;save();chrome();snd.click()}
