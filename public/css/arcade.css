@@ -104,7 +104,7 @@ td,th{padding:4px 10px;text-align:left}
  body.menu #side{transform:none;box-shadow:0 0 40px #000a}
  body.menu #ov-bg{display:block;position:fixed;inset:0;background:#0008;z-index:15}
  .hb{display:block}#top{padding:12px 14px}main{padding:16px 14px}
- .un small,.un .xp{display:none}.un{min-width:0}
+ .un small,.un .xp{display:none}.un{min-width:0}.search{min-width:0}.user{flex:none}
 }
-@media(max-width:560px){.opts{grid-template-columns:1fr}.gm{grid-template-columns:repeat(2,1fr)}.gm.tall{grid-template-columns:repeat(2,1fr)}.gc.tall .art{height:130px}.art span{font-size:3.2rem}.hs{display:none}.search{max-width:none}}
+@media(max-width:560px){.un{display:none}.user{padding:6px}.opts{grid-template-columns:1fr}.gm{grid-template-columns:repeat(2,1fr)}.gm.tall{grid-template-columns:repeat(2,1fr)}.gc.tall .art{height:130px}.art span{font-size:3.2rem}.hs{display:none}.search{max-width:none}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}

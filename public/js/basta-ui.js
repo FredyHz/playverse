@@ -48,7 +48,7 @@ const BUI = {
     S.bs = { rounds: +$('#cr').value, time: +$('#ct').value, cats, custom: c.custom }; save(); BUI.panel('cfg');
   },
   play() { if (S.P.length < 2) return BUI.msg('Basta necesita de 2 a 10 jugadores. Abre «Jugadores locales» aquí arriba y elige al menos 2.'); bsLocalStart(); },
-  create() { PVO.createGame('basta', BUI.cfg()); },
+  create() { const c = BUI.cfg(); PVO.createGame({ game: 'basta', brounds: c.rounds, btime: c.time, bcats: c.cats }); },
   join() { const v = $('#bj').value.trim(); if (!v) return BUI.msg('Escribe el código de 5 letras.'); PVO.join(v); },
   /* ---- Partida ---- */
   sheet(o) {

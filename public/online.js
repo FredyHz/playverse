@@ -15,11 +15,19 @@
   function connect() {
     if (O.sock) return;
     O.sock = io({ auth: { token: O.tok } });
-    O.sock.on('room:state', s => { O.room = s; if (s.phase === 'lobby') O.q = O.rev = O.end = O.bs = O.bsr = null; oR(); });
+    O.sock.on('room:state', s => { O.room = s; if (s.phase === 'lobby') O.q = O.rev = O.end = O.bs = O.bsr = O.ch = O.chg = null; oR(); });
     O.sock.on('trivia:question', q => { O.q = { ...q, ends: Date.now() + q.left }; O.rev = null; O.picked = null; snd.tick(); oR(); });
     O.sock.on('trivia:reveal', r => { O.rev = r; const me = r.results.find(x => x.id === O.user.id); me && me.pts ? snd.ok() : snd.bad(); oR(); });
     O.sock.on('trivia:end', e => { O.end = e; O.q = null; O.rev = null; if (e.winner === O.user.name) { confetti(); snd.win(); } refresh(); });
     O.sock.on('room:started', () => snd.click());
+    O.sock.on('chess:state', d => {
+      const prev = O.ch, moved = prev && d.history.length > prev.history.length, ended = d.over && !(prev && prev.over);
+      O.ch = d; O.chRecv = Date.now(); O.chg = CH.create(d.fen); CUI.reset(); O.msg = ''; O.chAnim = !!moved;
+      if (moved) CHV.moveSound({ capture: /x/.test(d.history[d.history.length - 1]) }, O.chg);
+      if (ended) CHV.modalClosed = false;
+      if (ended) { const my = d.white.id === O.user.id ? 'w' : 'b'; if (d.over.winner === my) { confetti(); snd.win(); } else d.over.winner ? snd.bad() : snd.ok(); refresh(); }
+      oR();
+    });
     O.sock.on('basta:round', d => { O.bs = { ...d, ends: Date.now() + d.left, vals: [], locked: false }; O.bsr = null; O.end = null; snd.tick(); oR(); });
     O.sock.on('basta:stopping', d => { if (!O.bs) return; O.bs.vals = bsVals(); O.sock.emit('basta:answers', O.bs.vals); O.bs.locked = true; O.bs.by = d.by; snd.ok(); oR(); });
     O.sock.on('basta:results', d => { const first = !O.bsr || O.bsr.round !== d.round; O.bsr = d; if (first && d.winner === O.user.name) { confetti(); snd.win(); } oR(); });
@@ -32,7 +40,7 @@
   window.vOnline = () => '<h2>🌐 Jugar online</h2><div id="ov"></div>';
   window.onlineInit = async () => {
     if (O.tok && !O.user) { try { O.user = (await api('me')).user; connect(); } catch (e) { O.tok = null; ls.set('pvt'); } }
-    if (O.user) { connect(); if (O.pend && !O.room) { const c = O.pend; O.pend = null; const r = await emit('room:join', { code: c }); if (r.error) O.msg = r.error; history.replaceState(null, '', '/#/online'); } if (O.autoCreate && !O.room) { const ac = O.autoCreate; O.autoCreate = 0; const r = await emit('room:create'); O.msg = r.error || ''; if (!r.error && ac.game) O.sock.emit('room:settings', { game: ac.game, brounds: ac.cfg.rounds, btime: ac.cfg.time, bcats: ac.cfg.cats }); } if (!O.lbd) loadLb(); }
+    if (O.user) { connect(); if (O.pend && !O.room) { const c = O.pend; O.pend = null; const r = await emit('room:join', { code: c }); if (r.error) O.msg = r.error; history.replaceState(null, '', '/#/online'); } if (O.autoCreate && !O.room) { const ac = O.autoCreate; O.autoCreate = 0; const r = await emit('room:create'); O.msg = r.error || ''; if (!r.error && ac.settings) O.sock.emit('room:settings', ac.settings); } if (!O.lbd) loadLb(); }
     oR();
   };
 
@@ -46,6 +54,8 @@
     const el = $('#ov'); if (!el) return;
     el.innerHTML = !O.user ? fAuth() : !O.room ? fHome() : O.room.phase === 'lobby' ? fLobby() : O.room.phase === 'playing' ? fPlay() : fEnd();
     if (BUI.after) BUI.after();
+    if (window.CUI) CUI.after();
+    if (window.CHV) CHV.post();
   }
 
   const fAuth = () => `<div class="card" style="max-width:420px"><h3>${O.form === 'login' ? 'Entrar' : 'Crear cuenta'}</h3>
@@ -72,13 +82,14 @@
   }
   function fLobby() {
     if (O.room.settings.game === 'basta') return fBLobby();
+    if (O.room.settings.game === 'chess') return fChLobby();
     const r = O.room, host = r.host === O.user.id, me = r.players.find(p => p.id === O.user.id), s = r.settings;
     const subs = ['Mixto', 'Matemáticas', 'Inglés', 'Español', 'Cultura general', 'Historia', 'Geografía', 'Ciencias', 'Lógica', 'Entretenimiento'];
     return `<div class="card"><p class="mu">Código de la sala</p><h1 style="letter-spacing:.2em;font-size:3rem">${r.code}</h1>
       <button class="btn alt" onclick="OL.copy()">Copiar enlace de invitación</button>
       <h3 style="margin-top:14px">Jugadores (${r.players.length}/10)</h3>${players()}
       <h3>Juego: Trivia familiar 🧠</h3>
-      ${host ? `<div class="row2"><label>Juego<br><select onchange="OL.setGame(this.value)"><option value="trivia" selected>Trivia familiar</option><option value="basta">Basta (Stop)</option></select></label><label>Tema<br><select id="ss" onchange="OL.set()">${subs.map(x => `<option ${x === s.subject ? 'selected' : ''}>${x}</option>`).join('')}</select></label>
+      ${host ? `<div class="row2">${gameSel('trivia')}<label>Tema<br><select id="ss" onchange="OL.set()">${subs.map(x => `<option ${x === s.subject ? 'selected' : ''}>${x}</option>`).join('')}</select></label>
       <label>Nivel<br><select id="sd" onchange="OL.set()">${['Fácil (20 s)', 'Medio (14 s)', 'Difícil (9 s)'].map((x, i) => `<option value="${i}" ${i === s.diff ? 'selected' : ''}>${x}</option>`).join('')}</select></label></div>`
       : `<p class="mu">Tema: ${s.subject} · Nivel: ${['Fácil', 'Medio', 'Difícil'][s.diff]}. Lo elige el anfitrión.</p>`}
       ${msg()}${host ? '<button class="btn" onclick="OL.start()">Iniciar partida</button>' : `<button class="btn" onclick="OL.ready(${!me.ready})">${me.ready ? 'Ya no estoy listo' : '¡Estoy listo!'}</button>`}
@@ -86,6 +97,7 @@
   }
   function fPlay() {
     if (O.room.settings.game === 'basta') return fBPlay();
+    if (O.room.settings.game === 'chess') return fChPlay();
     const q = O.q, rv = O.rev;
     if (!q) return `<div class="card">${players()}<p class="big">¡Prepárense! La primera pregunta ya viene…</p></div>`;
     return `<div class="card">${players()}<small>${q.cat} · Pregunta ${q.i + 1} de ${q.total}</small><h3>${esc(q.q)}</h3>
@@ -94,6 +106,7 @@
       ${rv ? `<p><b>${O.room.players.map(p => { const x = rv.results.find(r => r.id === p.id); return esc(p.name) + (x && x.pts ? ' +' + x.pts : ' 0'); }).join(' · ')}</b></p><p>${esc(rv.expl)}</p><p class="mu">La siguiente pregunta llega en unos segundos.</p>` : O.picked !== null ? '<p class="mu">Respuesta enviada. Esperando a los demás…</p>' : ''}</div>`;
   }
   function fEnd() {
+    if (O.room.settings.game === 'chess') return fChPlay();
     if (O.room.settings.game === 'basta') return fBEnd();
     const e = O.end, host = O.room.host === O.user.id;
     return `<div class="card"><h3>${e && e.winner ? '🏆 Ganó ' + esc(e.winner) : '🤝 Empate'}</h3>
@@ -104,6 +117,7 @@
   }
 
   setInterval(() => {
+    if (O.ch && O.ch.timed && $('#ckw')) { for (const c of ['w', 'b']) { const e = $('#ck' + c); if (e) e.textContent = CUI.fmt(chClock(c)); } }
     if (O.bs && !O.bsr && $('#bl')) BUI.tick(Math.max(0, Math.ceil((O.bs.ends - Date.now()) / 1000)), O.bs.secs);
     const t = $('#ot'); if (!t || !O.q || O.rev) return;
     const l = Math.max(0, Math.ceil((O.q.ends - Date.now()) / 1000));
@@ -111,6 +125,7 @@
   }, 200);
 
   /* ---- Basta online ---- */
+  const gameSel = cur => `<label>Juego<br><select onchange="OL.setGame(this.value)">${[['trivia', 'Trivia familiar'], ['basta', 'Basta (Stop)'], ['chess', 'Ajedrez']].map(([v, t]) => `<option value="${v}" ${v === cur ? 'selected' : ''}>${t}</option>`).join('')}</select></label>`;
   const bsVals = () => { const v = []; document.querySelectorAll('.bi').forEach(i => { v[+i.dataset.k] = i.value; }); return v; };
   let bsT;
   BUI.onInput = () => { if (!O.bs) return; O.bs.vals = bsVals(); clearTimeout(bsT); bsT = setTimeout(() => O.sock && O.sock.emit('basta:answers', O.bs.vals), 400); };
@@ -120,7 +135,7 @@
     const all = [...BASTA.CATS, ...s.bcats.filter(x => !BASTA.CATS.some(d => BASTA.norm(d) === BASTA.norm(x)))];
     return BUI.wrap(BUI.nb(`<span class="sticker">Sala de espera</span><h3>Comparte este código</h3><div class="code">${r.code}</div><button class="bb ghost" onclick="OL.copy()">Copiar invitación</button>
       <h3 style="margin-top:14px">Jugadores (${r.players.length}/10)</h3>${BUI.cards(r.players, r.host, O.user.id)}
-      ${host ? `<div class="sheetp"><div class="row2"><label>Juego<br><select onchange="OL.setGame(this.value)"><option value="trivia">Trivia familiar</option><option value="basta" selected>Basta (Stop)</option></select></label><label>Rondas<br><select id="nr" onchange="OL.bset()">${[1, 3, 5].map(n => `<option ${n === s.brounds ? 'selected' : ''}>${n}</option>`).join('')}</select></label><label>Tiempo (seg)<br><select id="nt" onchange="OL.bset()">${[45, 60, 90].map(n => `<option ${n === s.btime ? 'selected' : ''}>${n}</option>`).join('')}</select></label></div>
+      ${host ? `<div class="sheetp"><div class="row2">${gameSel('basta')}<label>Rondas<br><select id="nr" onchange="OL.bset()">${[1, 3, 5].map(n => `<option ${n === s.brounds ? 'selected' : ''}>${n}</option>`).join('')}</select></label><label>Tiempo (seg)<br><select id="nt" onchange="OL.bset()">${[45, 60, 90].map(n => `<option ${n === s.btime ? 'selected' : ''}>${n}</option>`).join('')}</select></label></div>
         <p>Categorías (de 3 a 10)</p><div>${all.map(x => `<label class="bchip"><input type="checkbox" class="cc" value="${esc(x)}" ${s.bcats.includes(x) ? 'checked' : ''} onchange="OL.bset()"> ${esc(x)}</label>`).join('')}</div>
         <div class="row2"><input id="nc" maxlength="20" placeholder="Nueva categoría…" aria-label="Nueva categoría"><button class="bb" onclick="OL.baddCat()">Añadir</button></div></div>`
       : `<p class="mu">Rondas: ${s.brounds} · Tiempo: ${s.btime} s · Categorías: ${s.bcats.map(esc).join(', ')}. Las elige el anfitrión.</p>`}
@@ -143,6 +158,37 @@
     const e = O.end, host = O.room.host === O.user.id;
     if (!e) return BUI.wrap(BUI.nb('<h3>Fin de la partida</h3><p class="mu">Cargando resultados…</p>'), 'one');
     return BUI.end({ winner: e.winner, ranking: e.ranking, note: 'Tus puntos ya quedaron guardados (1 por cada 10 de Basta, más 20 para el ganador).', actions: (host ? '<button class="bb main" onclick="OL.again()">Jugar otra vez</button> ' : '') + '<button class="bb" onclick="OL.leave()">Salir de la sala</button>' });
+  }
+
+  /* ---- Ajedrez online ---- */
+  const chClock = c => { const d = O.ch; let v = d.clocks[c]; if (!d.over && d.turn === c) v -= d.since + (Date.now() - O.chRecv); return v; };
+  function fChLobby() {
+    const r = O.room, host = r.host === O.user.id, s = r.settings, me = r.players.find(p => p.id === O.user.id);
+    const sel = (id, opts, cur) => `<select id="${id}" onchange="OL.cset()">${opts.map(([v, t]) => `<option value="${v}" ${v === cur ? 'selected' : ''}>${t}</option>`).join('')}</select>`;
+    return `<div class="card2"><p class="mu">Código de la sala</p><h1 style="letter-spacing:.2em;font-size:3rem">${r.code}</h1><button class="btn alt" onclick="OL.copy()">Copiar enlace de invitación</button>
+      <h3 style="margin-top:14px">Jugadores (${r.players.length}/2)</h3>${players()}
+      ${host ? `<div class="row2">${gameSel('chess')}<label>Tiempo por jugador<br>${sel('cti2', [[0, 'Sin límite'], [5, '5 min'], [10, '10 min'], [15, '15 min']], s.ctime)}</label><label>Mis piezas<br>${sel('cco3', [['w', 'Blancas'], ['b', 'Negras'], ['r', 'Al azar']], s.ccolor)}</label></div>`
+      : `<p class="mu">Ajedrez · ${s.ctime ? s.ctime + ' min por jugador' : 'sin límite de tiempo'} · el anfitrión juega con ${{ w: 'blancas', b: 'negras', r: 'color al azar' }[s.ccolor]}.</p>`}
+      ${msg()}${host ? '<button class="btn" onclick="OL.start()">Comenzar</button>' : `<button class="btn" onclick="OL.ready(${!me.ready})">${me.ready ? 'Ya no estoy listo' : '¡Estoy listo!'}</button>`}
+      <button class="btn alt" onclick="OL.leave()">Salir de la sala</button></div>`;
+  }
+  function fChPlay() {
+    const d = O.ch;
+    if (CHV.state !== '3d' && CHV.state !== '2d') { CHV.init().then(() => oR()); return '<div class="card2"><p class="big">Preparando el tablero…</p></div>'; }
+    if (!d || !O.chg) return '<div class="card2"><p class="big">Esperando la partida…</p></div>';
+    const my = d.white.id === O.user.id ? 'w' : 'b', g = O.chg, over = d.over, host = O.room.host === O.user.id, anim = !!O.chAnim; O.chAnim = false;
+    CHV.ctl = sq => { if (!O.ch.over) CUI.handle(sq, { g: O.chg, mine: c => c === my, send: mv => OL.chmove(mv), redraw: oR }); };
+    CHV.canGrab = sq => { const p = O.chg && O.chg.get(sq); return !!p && !O.ch.over && p.color === O.chg.turn() && p.color === my; };
+    CHV.redraw = oR;
+    const mk = (p, c) => ({ name: p.name, avatar: p.avatar, color: c, active: !over && d.turn === c, clock: d.timed ? chClock(c) : undefined, clockId: 'ck' + c, sub: (c === 'w' ? 'Blancas' : 'Negras') + (p.id === O.user.id ? ' · Tú' : '') });
+    const W = mk(d.white, 'w'), B = mk(d.black, 'b'), flip = my === 'b';
+    const banner = over ? (!over.winner ? `Tablas por ${over.reason}` : over.winner === my ? `¡Ganaste por ${over.reason}!` : `Perdiste por ${over.reason}`)
+      : (g.inCheck() ? '¡Jaque! ' : '') + (d.turn === my ? 'Tu turno' : 'Turno de ' + esc(d.turn === 'w' ? d.white.name : d.black.name));
+    const offer = d.offer && d.offer !== O.user.id ? '<button class="btn" onclick="OL.chdraw(\'accept\')">Aceptar tablas</button><button class="btn alt" onclick="OL.chdraw(\'decline\')">Rechazar</button>' : d.offer ? '<span class="mu">Tablas ofrecidas…</span>' : '<button class="btn alt" onclick="OL.chdraw(\'offer\')">Ofrecer tablas</button>';
+    const buttons = (O.msg ? `<span class="warn" style="color:#e8456b">${esc(O.msg)}</span>` : '') + (over ? (host ? '<button class="btn" onclick="OL.again()">Revancha / volver a la sala</button>' : '') + '<button class="btn alt" onclick="OL.leave()">Salir de la sala</button>' : offer + '<button class="btn alt" id="rsg" onclick="OL.chresign()">Rendirme</button>');
+    const modal = over ? CHV.modal({ title: !over.winner ? 'Empate' : over.winner === my ? '¡Victoria!' : 'Derrota', sub: `${over.result} · por ${over.reason}`, tone: !over.winner ? 'draw' : over.winner === my ? 'win' : 'lose', stats: CHV.summary(d.history, d.dur),
+      buttons: (host ? '<button class="btn" onclick="OL.again()">Revancha / volver a la sala</button>' : '<span class="mu">El anfitrión puede iniciar la revancha.</span>') + '<button class="btn alt" onclick="OL.leave()">Salir de la sala</button>' }) : '';
+    return CHV.layout({ g, flip, last: d.last, animate: anim, over: !!over, top: flip ? W : B, bottom: flip ? B : W, banner, history: d.history, buttons, modal, eng: 'Partida online · sala ' + O.room.code, back: 'OL.leave()' });
   }
 
   window.OL = {
@@ -179,6 +225,10 @@
       snd.ok(); oR();
     },
     setGame(g) { O.sock.emit('room:settings', { game: g }); },
+    cset() { O.sock.emit('room:settings', { game: 'chess', ctime: +$('#cti2').value, ccolor: $('#cco3').value }); },
+    async chmove(mv) { const r = await emit('chess:move', { from: mv.from, to: mv.to, promo: mv.promo }); if (r && r.error) { O.msg = r.error; snd.bad(); oR(); } },
+    chdraw(a) { O.sock.emit('chess:draw', a); snd.click(); },
+    chresign() { const b = $('#rsg'); if (b && !O.rs) { O.rs = 1; b.textContent = '¿Seguro? Toca otra vez'; return; } O.rs = 0; O.sock.emit('chess:resign'); },
     bset() { O.sock.emit('room:settings', { game: 'basta', brounds: +$('#nr').value, btime: +$('#nt').value, bcats: BUI.readCats() }); },
     baddCat() {
       const t = BASTA.clean($('#nc').value).slice(0, 20); if (!t || !/^[\p{L}\p{N} \-]+$/u.test(t)) return;
@@ -197,7 +247,7 @@
     user: () => O.user,
     clear() { O.autoCreate = 0; },
     create() { O.autoCreate = 1; go('online'); },
-    createGame(game, cfg) { O.autoCreate = { game, cfg }; go('online'); },
+    createGame(settings) { O.autoCreate = { settings }; go('online'); },
     join(c) { c = String(c || '').trim().toUpperCase(); if (!c) return; O.pend = c; go('online'); },
   };
   if (O.tok && !O.user) api('me').then(d => { O.user = d.user; oR(); }).catch(() => {});

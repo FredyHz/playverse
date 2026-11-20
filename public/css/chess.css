@@ -1,0 +1,126 @@
+/* Ajedrez */
+.chx{display:grid;grid-template-columns:minmax(0,600px) minmax(240px,1fr);gap:18px;align-items:start}
+.cbwrap{min-width:0}
+.cbd{position:relative}
+.cb{container-type:inline-size;display:grid;grid-template-columns:repeat(8,1fr);aspect-ratio:1;border-radius:14px;overflow:hidden;border:3px solid #3b4ca0;box-shadow:0 0 30px #7a5cff55;background:#7a5cd6}
+.sq{position:relative;display:grid;place-items:center;border:0;padding:0;margin:0;cursor:pointer;font:inherit;min-width:0}
+.sq.l{background:#e8e1ff}.sq.d{background:#7a5cd6}
+.sq:hover{filter:brightness(1.08)}
+.cp{font-size:10.4cqw;line-height:1;pointer-events:none;font-family:'Segoe UI Symbol','Noto Sans Symbols 2','Apple Symbols','DejaVu Sans',sans-serif;position:relative;z-index:2}
+.cp.w{color:#fff;text-shadow:0 0 2px #000,0 0 3px #000,0 1px 3px #000}
+.cp.b{color:#1a1240;text-shadow:0 0 1px #fffa}
+.cp.sm{font-size:1.15rem;letter-spacing:-.15em;text-shadow:none}
+.cp.sm.w{color:#dcd6ff;text-shadow:0 0 2px #000}
+.sq.sel{box-shadow:inset 0 0 0 .6cqw #2ee6ff}
+.sq.last:before{content:'';position:absolute;inset:0;background:#ffd23f77}
+.sq.tgt:after{content:'';position:absolute;width:30%;height:30%;border-radius:50%;background:#1b114099;z-index:3}
+.sq.tgt.cap:after{width:92%;height:92%;background:transparent;border:.7cqw solid #e8456bcc}
+.sq.chk:before{content:'';position:absolute;inset:0;background:radial-gradient(circle,#ff2d55 0,#ff2d5588 45%,transparent 75%)}
+.sq i{position:absolute;font-style:normal;font-weight:800;font-size:1.7cqw;opacity:.75;z-index:1}
+.sq i.c-rk{left:4%;top:3%}.sq i.c-fl{right:5%;bottom:2%}.sq.l i{color:#7a5cd6}.sq.d i{color:#e8e1ff}
+.promo{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:10px;background:#0a0e27cc;border-radius:14px;z-index:5;flex-wrap:wrap;align-content:center}
+.promo b{width:100%;text-align:center;font:1.3rem 'Lilita One';color:#fff}
+.promo button{background:#e8e1ff;border:3px solid #7a5cff;border-radius:14px;width:20%;max-width:90px;aspect-ratio:1;display:grid;place-items:center;cursor:pointer;container-type:inline-size}
+.promo .cp{font-size:70cqw}
+.cbar{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--ln);border-radius:14px;padding:6px 12px;margin:8px 0}
+.cbar.on{border-color:#2ee6ff;box-shadow:0 0 14px #2ee6ff66}
+.cbar .cap{margin-left:6px;color:var(--mu);font-size:.85rem;display:flex;align-items:center;gap:4px;min-width:0;overflow:hidden}
+.ck{margin-left:auto;font:1.5rem 'Lilita One';background:var(--bg2);border-radius:10px;padding:2px 12px;min-width:4.2em;text-align:center}
+.cpanel{position:sticky;top:12px}
+.cst{font:1.25rem 'Lilita One';padding:10px 12px;border-radius:12px;background:var(--bg2);margin-bottom:10px}
+.cst.over{background:linear-gradient(135deg,#7a5cff,#e8456b);color:#fff}
+.mv{display:grid;grid-template-columns:2.4em 1fr 1fr;gap:2px 6px;max-height:240px;overflow:auto;padding:6px;background:var(--bg2);border-radius:12px}
+.mvn{color:var(--mu)}
+.cbtn{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.cbtn .btn{padding:7px 14px;font-size:.95rem}
+@media(max-width:900px){.chx{grid-template-columns:1fr}.cpanel{position:static}}
+
+/* ===== Ajedrez 3D: pantalla, niveles y ventana final (dorado, crema, nogal y morado) ===== */
+.ch3-top{display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap}
+.ch3-top h3{font-size:1.6rem;letter-spacing:.16em;background:linear-gradient(90deg,#c9a24b,#f6e3a1,#c9a24b);-webkit-background-clip:text;background-clip:text;color:transparent}
+.ch3-back{background:var(--card);color:var(--tx);border:1px solid var(--ln);border-radius:12px;padding:6px 14px;font:inherit;cursor:pointer}
+.ch3-eng{margin-left:auto;color:var(--mu);font-size:.9rem}
+.ch3-main{display:grid;grid-template-columns:minmax(0,660px) minmax(260px,1fr);gap:18px;align-items:start}
+.ch3-left{min-width:0}
+.b3box{position:relative;aspect-ratio:1;border-radius:18px;overflow:hidden;background:radial-gradient(circle at 50% 30%,#2e1f66,#120b30 75%);border:2px solid #c9a24b88;box-shadow:inset 0 0 40px #0009,0 0 28px #7a5cff44}
+.b3slot,.b3canvas{position:absolute;inset:0}
+.b3canvas canvas{width:100%;height:100%;display:block;touch-action:none;outline:none}
+.b2d{position:relative}
+.promo3{position:absolute;inset:0;display:grid;place-content:center;gap:12px;text-align:center;background:#0a0e27cc;z-index:6}
+.promo3 b{font:1.4rem 'Lilita One';color:#f6e3a1}.promo3 div{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.ch3 .cbar{margin:8px 0}.cb-i{display:flex;flex-direction:column;line-height:1.15;min-width:0}.cb-i small{color:var(--mu)}
+.ch3 .cap{margin-left:auto;color:var(--mu);font-size:.8rem;text-align:right}
+.ch3 .ck{margin-left:10px;color:#f6e3a1;background:#1a1240;border:1px solid #c9a24b66}
+.ch3-panel{position:sticky;top:12px;background:var(--card);border:1px solid var(--ln);border-radius:20px;padding:16px}
+.ch3-panel h4{margin:12px 0 6px;font-family:'Lilita One';font-weight:400}
+.ch3-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px;padding:12px;background:var(--card);border:1px solid var(--ln);border-radius:16px}
+.ch3-bar .btn{padding:7px 14px;font-size:.95rem}.ch3-bar select{max-width:11em}
+.lvl-info{display:flex;align-items:center;gap:10px;padding:8px 0}.lvl-info small{display:block;color:var(--mu)}
+.crest{display:inline-grid;place-items:center;flex:none;width:42px;height:48px;background:linear-gradient(145deg,#f6e3a1,#c9a24b);clip-path:polygon(50% 0,100% 14%,100% 60%,50% 100%,0 60%,0 14%);color:#2a1b5e;font:1.05rem 'Lilita One'}
+.chmenu{display:grid;gap:14px}
+.lvs{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:10px;margin:12px 0}
+.lv{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;background:var(--bg2);color:var(--tx);border:2px solid var(--ln);border-radius:16px;padding:12px;font:inherit;cursor:pointer;transition:transform .15s,border-color .15s,box-shadow .15s}
+.lv:hover{transform:translateY(-3px)}.lv b{font:1.1rem 'Lilita One'}.lv small{color:var(--mu);min-height:2.6em}
+.lv.on{border-color:#c9a24b;box-shadow:0 0 20px #c9a24b66;background:linear-gradient(160deg,#c9a24b22,var(--bg2))}
+.pips{display:flex;gap:3px;margin-top:2px}.pips i{width:9px;height:9px;border-radius:50%;background:var(--ln)}.pips i.f{background:#c9a24b}
+.chm{position:fixed;inset:0;background:#0a0e27d9;display:grid;place-items:center;z-index:60;padding:16px;animation:up .3s both}
+.chm-card{width:100%;max-width:430px;text-align:center;color:#fff4dd;background:linear-gradient(160deg,#2e1f66,#14103a);border:2px solid #c9a24b;border-radius:24px;padding:26px;box-shadow:0 0 50px #c9a24b55}
+.chm-card.tone-win{box-shadow:0 0 60px #38e08c66}.chm-card.tone-lose{box-shadow:0 0 50px #e8456b55}
+.chm-crest{width:62px;height:70px;margin:0 auto 8px;background:linear-gradient(145deg,#f6e3a1,#c9a24b);clip-path:polygon(50% 0,100% 14%,100% 60%,50% 100%,0 60%,0 14%)}
+.chm-card h2{font-size:2rem;background:linear-gradient(90deg,#c9a24b,#f6e3a1,#c9a24b);-webkit-background-clip:text;background-clip:text;color:transparent}
+.chm-card p{color:#cfc6f5;margin:4px 0 12px}
+.chm-card dl{display:grid;grid-template-columns:1fr auto;gap:4px 14px;text-align:left;margin:0 0 14px;padding:12px 16px;background:#0006;border-radius:14px}
+.chm-card dt{color:#cfc6f5}.chm-card dd{margin:0;text-align:right;font-weight:800;color:#f6e3a1}
+.chm-b{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}.chm-b .btn{padding:8px 14px;font-size:.95rem}
+@media(max-width:900px){.ch3-main{grid-template-columns:1fr}.ch3-panel{position:static}}
+
+/* Tablero 2D de respaldo: ocho filas iguales */
+.cb{grid-template-rows:repeat(8,minmax(0,1fr))}.sq{min-height:0;overflow:hidden}.cp{line-height:1}
+.ch3-panel{overflow-wrap:anywhere}
+@media(max-width:560px){.ch3 .cbar{padding:6px 8px;gap:8px}.ch3 .cap{font-size:.7rem}}
+
+/* ===== Sala de ajedrez en madera ===== */
+.chroom{--card:#3b2515;--bg2:#2a170b;--tx:#f7ead0;--mu:#d2b98a;--ln:#c9a24b55;color:var(--tx);border-radius:24px;padding:18px;border:2px solid #c9a24b77;box-shadow:0 12px 40px #0006,inset 0 0 70px #0008;
+  background:repeating-linear-gradient(91deg,#0000001a 0 2px,transparent 2px 9px),repeating-linear-gradient(89deg,#ffd69614 0 1px,transparent 1px 13px),radial-gradient(ellipse at 28% 0%,#80512c,#4a2d18 48%,#2f1b0d)}
+.chroom h2,.chroom h3,.chroom h4{color:#f6e3a1}
+.chroom .back{color:#d9c08f}
+.chroom .card2,.chroom .ch3-panel,.chroom .ch3-bar{background:linear-gradient(160deg,#4d301b,#331f10);border:1px solid #c9a24b55;box-shadow:inset 0 0 28px #0005,0 4px 14px #0004}
+.chroom .cbar{background:linear-gradient(160deg,#4d301b,#331f10);border:1px solid #c9a24b55}
+.chroom .cbar.on{border-color:#f6e3a1;box-shadow:0 0 16px #f6e3a177}
+.chroom .btn{background:linear-gradient(135deg,#8b50e8,#6a3bc0);box-shadow:0 4px 0 #0007,0 0 14px #8b50e855}
+.chroom .btn.alt{background:linear-gradient(135deg,#ecc965,#b8892a);color:#2a170b}
+.chroom .btn:disabled{filter:grayscale(1);opacity:.5}
+.chroom input,.chroom select{background:#2a170b;color:#f7ead0;border:1px solid #c9a24b77}
+.chroom .ch3-back{background:#2a170b;color:#f6e3a1;border:1px solid #c9a24b77}
+.chroom .ch3-eng,.chroom .mu,.chroom small{color:#d2b98a}
+.chroom .cst{background:#2a170b;border:1px solid #c9a24b44;color:#f7ead0}
+.chroom .cst.over{background:linear-gradient(135deg,#6a3bc0,#a0502a);color:#fff}
+.chroom .mv{background:#2a170b}
+.chroom .lv{background:linear-gradient(160deg,#5c3a21,#3a2415);border-color:#c9a24b44;color:#f7ead0}
+.chroom .lv small{color:#d2b98a}
+.chroom .lv.on{border-color:#f6e3a1;box-shadow:0 0 22px #f6e3a177;background:linear-gradient(160deg,#7a4d2a,#4a2d18)}
+.chroom .pips i{background:#2a170b}.chroom .pips i.f{background:#f6e3a1}
+.chroom .ck{background:#2a170b;color:#f6e3a1}
+.b3box{background:radial-gradient(ellipse at 50% 30%,#7a4d2a,#2a170b 80%);border:3px solid #c9a24b99;box-shadow:inset 0 0 40px #0009,0 8px 24px #0007}
+.sq.l{background:#efdcb4}.sq.d{background:#9a6a3c}.sq.l i.c-rk,.sq.l i.c-fl{color:#9a6a3c}.sq.d i.c-rk,.sq.d i.c-fl{color:#efdcb4}
+.cb{border-color:#c9a24b99;box-shadow:0 0 22px #0006}
+.chm-card{background:linear-gradient(160deg,#573520,#2a170b);border-color:#c9a24b}
+.okb{font-style:normal;font-size:.72rem;font-weight:800;background:#e6c25a;color:#2a170b;border-radius:99px;padding:1px 9px}
+.crest.lock{filter:grayscale(1) brightness(.55);opacity:.6}
+.cgal{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-top:10px}
+.cg{display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;background:#2a170b;border:1px dashed #c9a24b44;border-radius:14px;padding:10px 6px;color:#f7ead0;font:inherit;opacity:.75}
+.cg.on{opacity:1;border:1px solid #f6e3a1;background:linear-gradient(160deg,#6a4226,#3a2415);cursor:pointer;box-shadow:0 0 16px #f6e3a144;transition:transform .15s}
+.cg.on:hover{transform:translateY(-3px)}.cg b{font:.95rem 'Lilita One'}
+.cert-note{margin:0 0 12px;padding:10px 12px;background:#0004;border:1px solid #f6e3a166;border-radius:12px;color:#f6e3a1}
+/* ===== Visor del reconocimiento ===== */
+.cert-ov{position:fixed;inset:0;z-index:200;background:#1a0f06ea;display:grid;place-items:center;padding:12px;overflow:auto;animation:up .3s both}
+.cert-card{position:relative;width:100%;max-width:520px;background:linear-gradient(160deg,#573520,#2a170b);border:2px solid #c9a24b;border-radius:20px;padding:18px;text-align:center;color:#f7ead0;box-shadow:0 0 60px #c9a24b55}
+.cert-card h3{color:#f6e3a1;margin:0 0 10px;font-size:1.4rem}
+.cert-x{position:absolute;right:10px;top:10px;width:34px;height:34px;border-radius:50%;border:1px solid #c9a24b88;background:#2a170b;color:#f6e3a1;font-size:1rem;cursor:pointer}
+.cert-pv{min-height:120px}.cert-pv img{display:block;width:100%;max-height:66vh;object-fit:contain;border-radius:6px;box-shadow:0 10px 30px #000a}
+.cert-b{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:14px 0 8px}
+.cert-card .btn{background:linear-gradient(135deg,#8b50e8,#6a3bc0);padding:9px 16px;font-size:1rem}
+.cert-card .btn.alt{background:linear-gradient(135deg,#ecc965,#b8892a);color:#2a170b}
+.cert-soc{display:flex;gap:16px;justify-content:center;margin:4px 0}.cert-soc a{color:#f6e3a1;font-weight:800}
+.cert-h{font-size:.8rem;color:#d2b98a;margin:6px 0 0}
+.chroom a{color:#f6e3a1;font-weight:800}

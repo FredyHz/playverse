@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Diagnóstico del ajedrez 3D</title>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
+<style>body{font:15px system-ui,sans-serif;margin:0;padding:16px;background:#f4f1ff;color:#1b1140}pre{white-space:pre-wrap;word-break:break-word;background:#fff;border:1px solid #cfc6f5;border-radius:12px;padding:12px}button{font:inherit;padding:8px 14px;border-radius:10px;border:2px solid #1b1140;background:#ffd23f;cursor:pointer;margin-right:8px}#b{width:min(100%,520px);aspect-ratio:1;background:#1b1346;border-radius:14px;margin-top:12px;position:relative}</style></head><body>
+<h2>Diagnóstico del ajedrez 3D</h2>
+<p>Esta página prueba cada paso. Al final, si todo funciona, dibuja el tablero 3D aquí abajo. Mándame una captura de toda la página.</p>
+<pre id="o">Ejecutando…</pre><button onclick="navigator.clipboard.writeText(document.getElementById('o').textContent)">Copiar resultado</button><button onclick="location.reload()">Repetir</button>
+<div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start"><div id="b"></div><div><b>Prueba simple de Three.js</b><div id="c" style="width:200px;height:200px;margin-top:6px"></div><small>Debes ver un cubo de colores.</small></div></div>
+<script src="/js/chess-core.js"></script>
+<script>
+(async () => {
+  const o = document.getElementById('o'), out = [], log = (ok, t, x) => { out.push((ok ? '✔ ' : '✘ ') + t + (x ? ' — ' + x : '')); o.textContent = out.join('\n'); };
+  const tail = t => '«' + t.trim().slice(-28).replace(/\s+/g, ' ') + '»';
+  log(true, 'Navegador', navigator.userAgent);
+  try { const c = document.createElement('canvas'), gl = c.getContext('webgl2') || c.getContext('webgl'); log(!!gl, 'WebGL', gl ? gl.getParameter(gl.VERSION) : 'tu navegador no lo ofrece: prueba en Chrome o Edge fuera de VS Code'); } catch (e) { log(false, 'WebGL', e.message); }
+  log(!!(HTMLScriptElement.supports && HTMLScriptElement.supports('importmap')), 'Import maps soportados');
+  for (const f of ['/index.html', '/js/chess-core.js', '/js/chess-ui.js', '/js/chess-view.js', '/js/chess3d.js', '/js/chess.js', '/css/chess.css']) {
+    try { const r = await fetch(f, { cache: 'no-store' }), t = await r.text(); log(r.ok && t.length > 100, f, r.status + ' · ' + t.length + ' bytes · termina en ' + tail(t)); } catch (e) { log(false, f, e.message); }
+  }
+  try { const t = await (await fetch('/index.html', { cache: 'no-store' })).text(), m = t.match(/<script type="importmap">([\s\S]*?)<\/script>/); log(!!m && /cdn\.jsdelivr/.test(m[1]), 'index.html trae el import map del CDN', m ? m[1].slice(0, 110) : 'NO: tienes un index.html viejo; copia el de la versión 0.9.2 o posterior'); } catch (e) { log(false, 'index.html', e.message); }
+  for (const u of ['build/three.module.js', 'examples/jsm/controls/OrbitControls.js', 'examples/jsm/environments/RoomEnvironment.js']) {
+    try { const r = await fetch('https://cdn.jsdelivr.net/npm/three@0.170.0/' + u), t = await r.text(); log(r.ok, 'CDN ' + u.split('/').pop(), r.status + ' · ' + t.length + ' bytes · termina en ' + tail(t)); } catch (e) { log(false, 'CDN ' + u.split('/').pop(), 'no se pudo descargar (' + e.message + '). ¿Sin internet, VPN, antivirus o bloqueador de anuncios?'); }
+  }
+  const step = async (name, fn) => { try { const r = await fn(); log(true, name); return r; } catch (e) { log(false, name, (e && e.message) + (e && e.stack ? '\n     ' + e.stack.split('\n').slice(1, 3).join('\n     ') : '')); throw e; } };
+  try {
+    await step('Importar Three.js', () => import('three'));
+    await step('Importar OrbitControls', () => import('three/addons/controls/OrbitControls.js'));
+    await step('Importar RoomEnvironment', () => import('three/addons/environments/RoomEnvironment.js'));
+    await step('Prueba simple: dibujar un cubo de colores', async () => { const T = await import('three'), r2 = new T.WebGLRenderer({ antialias: true }); r2.setSize(200, 200); document.getElementById('c').appendChild(r2.domElement); const sc = new T.Scene(); sc.background = new T.Color(0x222244); const cam = new T.PerspectiveCamera(50, 1, 0.1, 10); cam.position.z = 2.2; const m = new T.Mesh(new T.BoxGeometry(1, 1, 1), new T.MeshNormalMaterial()); m.rotation.set(0.5, 0.7, 0); sc.add(m); r2.render(sc, cam); });
+    const mod = await step('Importar chess3d.js', () => import('/js/chess3d.js'));
+    const B = await step('Crear el tablero 3D', () => mod.createBoard({ quality: 'auto', onSquare() {}, canGrab: () => false }));
+    document.getElementById('b').appendChild(B.el); B.resize(); B.sync(CH.create()); B.view('w', true);
+    await new Promise(r => setTimeout(r, 800)); const d = B._dbg(); log(true, 'Tamaños del lienzo', 'contenedor ' + d.size.join('×') + ' · buffer ' + d.buffer.join('×') + ' · devicePixelRatio ' + devicePixelRatio);
+    log(true, 'RESULTADO', 'todo funciona: debes ver el tablero 3D aquí abajo');
+  } catch (e) { log(false, 'RESULTADO', 'el 3D se detuvo en el último paso marcado ✘'); }
+})();
+</script></body></html>

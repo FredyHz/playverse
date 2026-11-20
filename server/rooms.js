@@ -1,6 +1,7 @@
 // Salas multijugador en tiempo real (Socket.IO). El servidor decide todo: preguntas, tiempos y puntos.
 const QB = require('./questions.json');
 const BASTA = require('../public/js/basta-core.js'); // mismas reglas de puntuación que el modo local
+const CH = require('../public/js/chess-core.js'); // el servidor valida cada jugada con el mismo motor
 const rnd = n => Math.floor(Math.random() * n);
 const shuffle = a => [...a].sort(() => Math.random() - 0.5);
 const SECS = [20, 14, 9];
@@ -48,6 +49,7 @@ module.exports = (io, db) => {
     if (n) r.host = n.id;
   }
   function removePlayer(r, id) {
+    if (r.ch && !r.ch.over && (id === r.ch.white || id === r.ch.black)) chEnd(r, id === r.ch.white ? '0-1' : '1-0', 'el rival abandonó la sala');
     r.players.delete(id); byUser.delete(id);
     if (!r.players.size) return dropRoom(r);
     pickHost(r); push(r);
@@ -134,6 +136,31 @@ module.exports = (io, db) => {
       });
   }
 
+  // ---------- AJEDREZ (el servidor valida cada jugada y lleva los relojes) ----------
+  function startChess(r) {
+    const [a, b] = members(r), col = r.settings.ccolor;
+    const white = col === 'w' ? r.host : col === 'b' ? (a.id === r.host ? b.id : a.id) : (Math.random() < 0.5 ? a.id : b.id);
+    const black = white === a.id ? b.id : a.id, ms = r.settings.ctime * 60000;
+    r.ch = { g: CH.create(), white, black, clocks: { w: ms, b: ms }, timed: ms > 0, turnStart: Date.now(), t0: Date.now(), t1: 0, over: null, offer: null, info: new Map(members(r).map(p => [p.id, { name: p.name, avatar: p.avatar }])) };
+    io.to(r.code).emit('room:started'); chArm(r); push(r); io.to(r.code).emit('chess:state', chView(r));
+  }
+  function chView(r) {
+    const c = r.ch, who = id => ({ id, ...c.info.get(id) }), g = c.g;
+    return { fen: g.fen(), turn: g.turn(), white: who(c.white), black: who(c.black), history: g.history(), last: g.last(), over: c.over, timed: c.timed, clocks: c.clocks, since: Date.now() - c.turnStart, offer: c.offer, dur: (c.t1 || Date.now()) - c.t0 };
+  }
+  function chArm(r) {
+    const c = r.ch; clearTimeout(r.timer);
+    if (c.timed && !c.over) r.timer = setTimeout(() => chFlag(r), Math.max(0, c.clocks[c.g.turn()]) + 150);
+  }
+  function chFlag(r) { const c = r.ch; if (!c || c.over) return; const t = c.g.turn(); c.clocks[t] = 0; chEnd(r, t === 'w' ? '0-1' : '1-0', 'tiempo agotado'); }
+  function chEnd(r, result, reason) {
+    const c = r.ch; if (!c || c.over) return; clearTimeout(r.timer);
+    const winner = result === '1-0' ? 'w' : result === '0-1' ? 'b' : null, wid = winner === 'w' ? c.white : winner === 'b' ? c.black : null;
+    c.over = { result, reason, winner }; c.t1 = Date.now(); r.phase = 'end';
+    const pts = id => (winner ? (id === wid ? 30 : 5) : 10), results = [c.white, c.black].map(id => ({ id, name: c.info.get(id).name, pts: pts(id) }));
+    db.finishMatch(r.code, 'chess', wid, results).catch(e => console.error('No se guardó la partida:', e.message)).finally(() => { io.to(r.code).emit('chess:state', chView(r)); push(r); });
+  }
+
   io.on('connection', socket => {
     const u = socket.data.user;
     const mine = () => rooms.get(byUser.get(u.id));
@@ -142,6 +169,7 @@ module.exports = (io, db) => {
       clearTimeout(r.idle); socket.join(r.code); byUser.set(u.id, r.code);
       pickHost(r); push(r);
       if (r.phase === 'playing' && r.pub && r.cur && !r.cur.done) socket.emit('trivia:question', { ...r.pub, left: Math.max(0, r.cur.endsAt - Date.now()) });
+      if (r.ch) socket.emit('chess:state', chView(r));
       if (r.bs && r.bs.last && (r.phase === 'playing' || r.phase === 'end')) {
         const l = r.bs.last;
         socket.emit(l.ev, l.ev === 'basta:round' ? { ...l.data, left: Math.max(0, r.bs.endsAt - Date.now()) } : l.data);
@@ -156,7 +184,7 @@ module.exports = (io, db) => {
     socket.on('room:create', (_, ack) => {
       leaveCurrent();
       const code = newCode();
-      const r = { code, host: u.id, phase: 'lobby', settings: { game: 'trivia', subject: 'Mixto', diff: 1, rounds: 8, brounds: 3, btime: 60, bcats: BASTA.CATS.slice(0, 6) }, players: new Map(), Q: [], qi: 0 };
+      const r = { code, host: u.id, phase: 'lobby', settings: { game: 'trivia', subject: 'Mixto', diff: 1, rounds: 8, brounds: 3, btime: 60, bcats: BASTA.CATS.slice(0, 6), ctime: 10, ccolor: 'r' }, players: new Map(), Q: [], qi: 0 };
       r.players.set(u.id, { id: u.id, ready: true, score: 0 });
       rooms.set(code, r); attach(r, r.players.get(u.id));
       ack?.({ ok: true, code });
@@ -167,7 +195,7 @@ module.exports = (io, db) => {
       let p = r.players.get(u.id);
       if (!p) {
         if (r.phase !== 'lobby') return ack?.({ error: 'La partida ya empezó. Espera a que termine.' });
-        if (r.players.size >= 10) return ack?.({ error: 'La sala está llena (máximo 10).' });
+        if (r.players.size >= (r.settings.game === 'chess' ? 2 : 10)) return ack?.({ error: r.settings.game === 'chess' ? 'La sala de ajedrez ya tiene 2 jugadores.' : 'La sala está llena (máximo 10).' });
         leaveCurrent();
         p = { id: u.id, ready: false, score: 0 }; r.players.set(u.id, p);
       }
@@ -180,7 +208,9 @@ module.exports = (io, db) => {
       const subs = ['Mixto', 'Matemáticas', 'Inglés', 'Español', 'Cultura general', 'Historia', 'Geografía', 'Ciencias', 'Lógica', 'Entretenimiento'];
       if (subs.includes(s?.subject)) r.settings.subject = s.subject;
       if ([0, 1, 2].includes(s?.diff)) r.settings.diff = s.diff;
-      if (['trivia', 'basta'].includes(s?.game)) r.settings.game = s.game;
+      if (['trivia', 'basta', 'chess'].includes(s?.game) && !(s.game === 'chess' && r.players.size > 2)) r.settings.game = s.game;
+      if ([0, 5, 10, 15].includes(s?.ctime)) r.settings.ctime = s.ctime;
+      if (['w', 'b', 'r'].includes(s?.ccolor)) r.settings.ccolor = s.ccolor;
       if ([1, 3, 5].includes(s?.brounds)) r.settings.brounds = s.brounds;
       if ([45, 60, 90].includes(s?.btime)) r.settings.btime = s.btime;
       if (Array.isArray(s?.bcats)) r.settings.bcats = BASTA.sanitizeCats(s.bcats);
@@ -191,10 +221,12 @@ module.exports = (io, db) => {
       const ps = [...r.players.values()].filter(p => p.connected);
       if (ps.length < 2) return ack?.({ error: 'Se necesitan al menos 2 jugadores conectados.' });
       if (ps.some(p => p.id !== r.host && !p.ready)) return ack?.({ error: 'Todos los jugadores deben estar listos.' });
+      if (r.settings.game === 'chess' && (ps.length !== 2 || r.players.size !== 2)) return ack?.({ error: 'El ajedrez se juega entre 2 personas.' });
       for (const [id, p] of r.players) if (!p.connected) r.players.delete(id);
       r.players.forEach(p => { p.score = 0; });
       r.phase = 'playing';
-      if (r.settings.game === 'basta') startBasta(r);
+      if (r.settings.game === 'chess') startChess(r);
+      else if (r.settings.game === 'basta') startBasta(r);
       else {
         r.Q = buildQuestions(r.settings.subject, r.settings.diff, r.settings.rounds); r.qi = 0;
         push(r); io.to(r.code).emit('room:started');
@@ -238,9 +270,38 @@ module.exports = (io, db) => {
       if (!b || r.host !== u.id || b.phase !== 'results' || r.phase !== 'playing') return;
       if (b.round + 1 < r.settings.brounds) { b.round++; startRound(r); } else finishBasta(r);
     });
+
+    // ---- Ajedrez ----
+    socket.on('chess:move', (d, ack) => {
+      const r = mine(), c = r && r.ch, reply = typeof ack === 'function' ? ack : () => {};
+      if (!c || c.over || r.phase !== 'playing') return reply({ error: 'La partida no está en curso.' });
+      const t = c.g.turn();
+      if ((t === 'w' ? c.white : c.black) !== u.id) return reply({ error: 'No es tu turno.' });
+      const sq = x => typeof x === 'string' && /^[a-h][1-8]$/.test(x);
+      if (!sq(d?.from) || !sq(d?.to) || (d.promo !== undefined && !['q', 'r', 'b', 'n'].includes(d.promo))) return reply({ error: 'Jugada inválida.' });
+      if (!c.g.moves().some(m => m.from === d.from && m.to === d.to)) return reply({ error: 'Jugada ilegal.' });
+      const now = Date.now();
+      if (c.timed) { c.clocks[t] -= now - c.turnStart; if (c.clocks[t] <= 0) { c.clocks[t] = 0; chEnd(r, t === 'w' ? '0-1' : '1-0', 'tiempo agotado'); return reply({ error: 'Se acabó tu tiempo.' }); } }
+      c.g.move({ from: d.from, to: d.to, promo: d.promo }); c.turnStart = now; c.offer = null;
+      const st = c.g.status();
+      if (st.over) chEnd(r, st.result, st.reason); else { chArm(r); io.to(r.code).emit('chess:state', chView(r)); }
+      reply({ ok: true });
+    });
+    socket.on('chess:resign', () => {
+      const r = mine(), c = r && r.ch; if (!c || c.over || (u.id !== c.white && u.id !== c.black)) return;
+      chEnd(r, u.id === c.white ? '0-1' : '1-0', 'rendición');
+    });
+    socket.on('chess:draw', act => {
+      const r = mine(), c = r && r.ch; if (!c || c.over || (u.id !== c.white && u.id !== c.black)) return;
+      if (act === 'offer' && !c.offer) c.offer = u.id;
+      else if (act === 'accept' && c.offer && c.offer !== u.id) return chEnd(r, '1/2-1/2', 'tablas acordadas');
+      else if (act === 'decline' && c.offer && c.offer !== u.id) c.offer = null;
+      else return;
+      io.to(r.code).emit('chess:state', chView(r));
+    });
     socket.on('room:again', () => {
       const r = mine(); if (!r || r.host !== u.id || r.phase !== 'end') return;
-      clearTimeout(r.timer); r.bs = null;
+      clearTimeout(r.timer); r.bs = null; r.ch = null;
       r.phase = 'lobby'; r.players.forEach((p, id) => { p.score = 0; p.ready = id === r.host; if (!p.connected) r.players.delete(id); });
       push(r);
     });

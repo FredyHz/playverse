@@ -12,6 +12,28 @@ app.get('/health', (req, res) => res.send('ok'));
 app.use(express.json({ limit: '10kb' }));
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
+// Librerías del ajedrez 3D (se instalan con npm): Three.js y, si se pudo instalar, Stockfish
+const fs = require('fs');
+const nm = path.join(__dirname, '..', 'node_modules');
+app.use('/vendor/three', express.static(path.join(nm, 'three'), { maxAge: '7d' }));
+app.use('/vendor/stockfish', express.static(path.join(nm, 'stockfish'), { maxAge: '7d' }));
+let sfUrl;
+function findStockfish() { // elige la versión de un solo hilo (no necesita cabeceras especiales) y, si puede, la ligera
+  if (sfUrl !== undefined) return sfUrl;
+  sfUrl = null; const base = path.join(nm, 'stockfish'); if (!fs.existsSync(base)) return null;
+  let bestScore = -99;
+  for (const d of ['bin', 'src', 'build', '.']) {
+    const dir = path.join(base, d); if (!fs.existsSync(dir)) continue;
+    for (const f of fs.readdirSync(dir)) {
+      if (!/^stockfish.*\.js$/i.test(f) || /worker|test|\.min\./i.test(f)) continue;
+      const sc = (/single/i.test(f) ? 4 : 0) + (/lite/i.test(f) ? 2 : 0) - (/asm/i.test(f) ? 3 : 0) - (/multi|thread/i.test(f) ? 5 : 0);
+      if (sc > bestScore) { bestScore = sc; sfUrl = '/vendor/stockfish/' + (d === '.' ? '' : d + '/') + f; }
+    }
+  }
+  return sfUrl;
+}
+app.get('/api/engine', (req, res) => res.json({ url: findStockfish() }));
+
 const ah = fn => (req, res, next) => fn(req, res, next).catch(e => { console.error(e); res.status(500).json({ error: 'Error del servidor. Intenta de nuevo.' }); });
 const token = req => (req.headers.authorization || '').replace('Bearer ', '');
 const auth = ah(async (req, res, next) => {
